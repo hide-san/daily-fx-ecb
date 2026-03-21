@@ -18,7 +18,7 @@ ecb_raw/all_currencies.csv   (produced by fetch_ecb.py)
 Output
 ------
 datasets/<PAIR>/
-    <PAIR>_daily.csv         single-pair time series with ML-ready features
+    <PAIR>.csv               single-pair time series with ML-ready features
     dataset-metadata.json    Kaggle dataset descriptor
 """
 
@@ -160,13 +160,15 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         }],
         # Tag slugs must exactly match existing Kaggle tags.
         # Invalid slugs are silently ignored by the API.
+        # Tag ID 16373 = Currencies and Foreign Exchange
         "keywords": [
             "finance",
             "economics",
             "tabular",
+            "currencies-and-foreign-exchange",
         ],
         "resources": [{
-            "path":        f"{pair}_daily.csv",
+            "path":        f"{pair}.csv",
             "description": (
                 f"Daily {base}/{quote} cross rate derived from ECB EUR reference rates, "
                 f"1999-01-04 to {latest}. Includes ML-ready features."
@@ -230,7 +232,7 @@ def main() -> None:
           f"({df['date'].min().date()} to {df['date'].max().date()})")
 
     output_dir = pair_output_dir(pair)
-    csv_path   = output_dir / f"{pair}_daily.csv"
+    csv_path   = output_dir / f"{pair}.csv"
     df.to_csv(csv_path, index=False)
     print(f"Saved CSV      : {csv_path}  ({csv_path.stat().st_size / 1024:.1f} KB)")
 

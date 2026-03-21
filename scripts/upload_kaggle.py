@@ -56,7 +56,7 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
     # This prevents cover.png from appearing as a downloadable data file.
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        shutil.copy(dataset_dir / f"{pair}_daily.csv",      tmp_path / f"{pair}_daily.csv")
+        shutil.copy(dataset_dir / f"{pair}.csv",             tmp_path / f"{pair}.csv")
         shutil.copy(dataset_dir / "dataset-metadata.json",  tmp_path / "dataset-metadata.json")
 
         # --- Try create (works for first-time upload) -----------------------
