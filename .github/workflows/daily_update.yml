@@ -185,6 +185,15 @@ jobs:
           print(f"kaggle.json written ({len(creds['key'])} char key)")
           EOF
 
+      - name: Debug Kaggle credentials
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
+        run: |
+          echo "USERNAME length: ${#KAGGLE_USERNAME}"
+          echo "KEY length: ${#KAGGLE_KEY}"
+          kaggle config view
+
       # --- Dataset upload + readiness check -----------------------------------
       - name: Upload ${{ matrix.pair }} dataset to Kaggle
         env:
