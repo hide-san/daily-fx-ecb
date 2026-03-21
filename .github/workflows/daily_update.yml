@@ -193,6 +193,8 @@ jobs:
 
       # --- EDA notebook -------------------------------------------------------
       - name: Generate ${{ matrix.pair }} EDA notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
@@ -206,6 +208,8 @@ jobs:
 
       # --- Modeling notebook --------------------------------------------------
       - name: Generate ${{ matrix.pair }} modeling notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
