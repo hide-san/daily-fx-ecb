@@ -1,47 +1,43 @@
 """
 scripts/upload_kaggle.py  --pair <BASEQUOTE>
 =============================================
-Job 3 (upload step) — Upload one pair's dataset to Kaggle and wait
-until Kaggle has finished processing it before returning.
+Job 3 (upload step) — Upload one pair's dataset to Kaggle.
 
 Behaviour
 ---------
-1. Upload (version update or first-time create)
-2. Poll `kaggle datasets status` until status == "ready"
-3. Return True only when the dataset is confirmed ready
+1. Try create — if the dataset is new it gets created.
+2. If the dataset already exists, fall back to version update.
 
-The ready-check ensures the dataset is fully indexed before the
-notebook push step runs, avoiding a race condition where the notebook
-references a dataset that Kaggle is still processing.
+Note on Kaggle CLI 2.0
+-----------------------
+Exit code 0 is returned even when stdout contains an error message.
+We inspect stdout to detect real failures.
 """
 
 import argparse
 import sys
-import time
 from datetime import datetime
 
 from common import (
     DATASETS_ROOT,
     append_github_summary,
-    dataset_slug,
     run_command,
 )
-
-# ---------------------------------------------------------------------------
-# Configuration
-# ---------------------------------------------------------------------------
-
-# How long to wait for Kaggle to process the upload before giving up.
-READY_TIMEOUT_SEC  = 300   # 5 minutes
-
-# How often to poll the status endpoint.
-READY_POLL_SEC     = 30
 
 # ---------------------------------------------------------------------------
 # Upload
 # ---------------------------------------------------------------------------
 
 def upload_dataset(pair: str, dry_run: bool) -> bool:
+    """
+    Upload datasets/<pair>/ to Kaggle.
+
+    Tries create first; if the dataset already exists falls back to
+    adding a new version.  Handles Kaggle CLI 2.0 quirk where exit code
+    is 0 even when stdout contains an error message.
+
+    Returns True on success, False on failure.
+    """
     dataset_dir  = DATASETS_ROOT / pair
     version_note = f"Daily update: {datetime.utcnow().strftime('%Y-%m-%d')}"
 
@@ -53,96 +49,35 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         print(f"ERROR: {dataset_dir} does not exist.", file=sys.stderr)
         return False
 
-    # Try create first.
-    result = run_command([
+    # --- Try create (works for first-time upload) ---------------------------
+    result    = run_command([
         "kaggle", "datasets", "create",
         "--path",     str(dataset_dir),
         "--dir-mode", "zip",
     ])
-
-    # Kaggle CLI 2.0 returns exit code 0 even on some errors.
-    # Check stdout for actual error messages.
-    create_output = (result.stdout + result.stderr).lower()
-    create_ok = result.returncode == 0 and "error" not in create_output
+    output    = (result.stdout + result.stderr).lower()
+    create_ok = result.returncode == 0 and "error" not in output
 
     if create_ok:
         print(f"{pair}: dataset created successfully.")
         return True
 
-    # Dataset already exists — add a new version.
+    # --- Fall back to version update (dataset already exists) ---------------
     print(f"{pair}: dataset exists — adding new version ...")
-    result = run_command([
+    result     = run_command([
         "kaggle", "datasets", "version",
         "--path",     str(dataset_dir),
         "--message",  version_note,
         "--dir-mode", "zip",
     ])
-
-    version_output = (result.stdout + result.stderr).lower()
-    version_ok = result.returncode == 0 and "error" not in version_output
+    output     = (result.stdout + result.stderr).lower()
+    version_ok = result.returncode == 0 and "error" not in output
 
     if version_ok:
         print(f"{pair}: version update submitted.")
         return True
 
     print(f"ERROR: dataset upload failed for {pair}.", file=sys.stderr)
-    return False
-
-# ---------------------------------------------------------------------------
-# Readiness polling
-# ---------------------------------------------------------------------------
-
-def wait_until_ready(
-    pair: str,
-    dry_run: bool,
-    timeout_sec: int = READY_TIMEOUT_SEC,
-    poll_sec: int    = READY_POLL_SEC,
-) -> bool:
-    """
-    Poll `kaggle datasets status` until the dataset is ready.
-
-    Kaggle processes uploaded files asynchronously (unzipping, indexing).
-    This function blocks until the status is "ready" or the timeout
-    is reached, which prevents the notebook push from racing against
-    an incomplete dataset.
-
-    Returns True when ready, False on timeout or error.
-    """
-    if dry_run:
-        print(f"[dry-run] Skipping readiness check for {pair}.")
-        return True
-
-    slug     = dataset_slug(pair)
-    deadline = time.monotonic() + timeout_sec
-    attempt  = 0
-
-    print(f"Waiting for dataset {slug} to become ready ...")
-
-    while time.monotonic() < deadline:
-        attempt += 1
-        result = run_command(["kaggle", "datasets", "status", slug])
-        output = (result.stdout + result.stderr).lower()
-
-        if "ready" in output:
-            print(f"{pair}: dataset is ready (attempt {attempt}).")
-            return True
-
-        if "error" in output or "failed" in output:
-            print(f"ERROR: dataset processing failed for {pair}:\n{result.stdout}",
-                  file=sys.stderr)
-            return False
-
-        remaining = int(deadline - time.monotonic())
-        print(
-            f"  Status: not ready yet — "
-            f"retrying in {poll_sec}s (timeout in {remaining}s) ..."
-        )
-        time.sleep(poll_sec)
-
-    print(
-        f"ERROR: {pair} dataset did not become ready within {timeout_sec}s.",
-        file=sys.stderr,
-    )
     return False
 
 
@@ -152,32 +87,21 @@ def wait_until_ready(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Upload a currency pair dataset to Kaggle and wait until ready."
+        description="Upload a currency pair dataset to Kaggle."
     )
-    parser.add_argument("--pair", required=True, help="Pair code, e.g. USDJPY")
+    parser.add_argument("--pair",    required=True,
+                        help="Pair code, e.g. USDJPY")
     parser.add_argument("--dry-run", action="store_true",
-                        help="Skip upload and readiness check — for testing.")
-    parser.add_argument("--timeout", type=int, default=READY_TIMEOUT_SEC,
-                        help=f"Readiness timeout in seconds (default: {READY_TIMEOUT_SEC})")
+                        help="Skip upload — useful for testing.")
     args = parser.parse_args()
     pair = args.pair.upper()
 
-    # Step 1: upload
-    uploaded = upload_dataset(pair, dry_run=args.dry_run)
-    if not uploaded:
-        append_github_summary(f"| {pair} dataset | upload FAILED |\n")
-        sys.exit(1)
-    
-    # Step 2: wait for Kaggle to process (status API not supported with API Token yet)
-    print(f"Waiting 60s for Kaggle to process the dataset ...")
-    if not args.dry_run:
-        time.sleep(60)
-    ready = True
-    
-    status = "ready" if ready else "FAILED (timeout)"
+    success = upload_dataset(pair, dry_run=args.dry_run)
+
+    status = "uploaded" if success else "upload FAILED"
     append_github_summary(f"| {pair} dataset | {status} |\n")
 
-    sys.exit(0 if ready else 1)
+    sys.exit(0 if success else 1)
 
 
 if __name__ == "__main__":
