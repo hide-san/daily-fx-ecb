@@ -3,7 +3,7 @@ scripts/generate_cover.py  --pair <BASEQUOTE>
 ==============================================
 Generate a 1280x640 PNG cover image for one currency pair dataset.
 
-Saved to datasets/<PAIR>/cover.png — Kaggle picks it up automatically
+Saved to datasets/<PAIR>/<PAIR>.png — Kaggle picks it up automatically
 as the dataset thumbnail when the directory is uploaded.
 
 Design
@@ -120,7 +120,7 @@ def main() -> None:
     base, quote = parse_pair(pair)
 
     output_dir  = pair_output_dir(pair)
-    output_path = output_dir / "cover.png"
+    output_path = output_dir / f"{pair}.png"
 
     cairosvg.svg2png(
         bytestring=build_svg(base, quote).encode("utf-8"),

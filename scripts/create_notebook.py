@@ -46,7 +46,7 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
       9. Next steps + source credit
     """
     slug     = dataset_slug(pair)
-    csv_file = f"{pair}_daily.csv"
+    csv_file = f"{pair}.csv"
 
     cells = [
 

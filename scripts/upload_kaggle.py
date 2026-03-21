@@ -36,7 +36,7 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
     Upload datasets/<pair>/ to Kaggle.
 
     Only the CSV and dataset-metadata.json are uploaded as data files.
-    cover.png is excluded from the upload directory to prevent it from
+    {pair}.png is excluded from the upload directory to prevent it from
     appearing as a data file in the Kaggle dataset file list.
 
     Returns True on success, False on failure.
@@ -52,11 +52,11 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         print(f"ERROR: {dataset_dir} does not exist.", file=sys.stderr)
         return False
 
-    # Stage only the data files (exclude cover.png) in a temp directory.
-    # This prevents cover.png from appearing as a downloadable data file.
+    # Stage only the data files (exclude {pair}.png) in a temp directory.
+    # This prevents {pair}.png from appearing as a downloadable data file.
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        shutil.copy(dataset_dir / f"{pair}_daily.csv",             tmp_path / f"{pair}_daily.csv")
+        shutil.copy(dataset_dir / f"{pair}.csv",             tmp_path / f"{pair}.csv")
         shutil.copy(dataset_dir / "dataset-metadata.json",  tmp_path / "dataset-metadata.json")
 
         # --- Try create (works for first-time upload) -----------------------

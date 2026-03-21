@@ -115,7 +115,7 @@ def run_checks(pair: str) -> tuple[bool, list[str]]:
 
     Returns (passed, errors).
     """
-    csv_path = DATASETS_ROOT / pair / f"{pair}_daily.csv"
+    csv_path = DATASETS_ROOT / pair / f"{pair}.csv"
 
     if not csv_path.exists():
         return False, [f"{csv_path} not found — did calc_pair.py run?"]

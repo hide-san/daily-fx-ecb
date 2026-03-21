@@ -122,7 +122,7 @@ plt.rcParams.update({
         md("## Load data"),
         code(f"""\
 DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
-df = pd.read_csv(DATA_DIR / "{pair}_daily.csv", parse_dates=["date"])
+df = pd.read_csv(DATA_DIR / "{pair}.csv", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 
 # Work with log returns — stationary by construction and preferred for modelling
