@@ -72,7 +72,15 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         return True
 
     # First run: dataset does not exist yet.
-    if "404" in result.stderr or "not found" in result.stderr.lower():
+    # Kaggle CLI 2.0 returns 403 Forbidden (not 404) when the dataset
+    # has never been created — include both in the fallback condition.
+    is_not_found = (
+        "404" in result.stderr
+        or "403" in result.stderr
+        or "not found" in result.stderr.lower()
+        or "forbidden" in result.stderr.lower()
+    )
+    if is_not_found:
         print(f"{pair}: not found on Kaggle — creating for the first time ...")
         result = run_command([
             "kaggle", "datasets", "create",
