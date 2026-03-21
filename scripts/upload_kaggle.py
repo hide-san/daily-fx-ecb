@@ -60,7 +60,11 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         "--path",     str(dataset_dir),
         "--dir-mode", "zip",
     ])
-
+    
+    print(f"[debug] create returncode: {result.returncode}")
+    print(f"[debug] create stdout: {result.stdout}")
+    print(f"[debug] create stderr: {result.stderr}")
+    
     if result.returncode == 0:
         print(f"{pair}: dataset created successfully.")
         return True
