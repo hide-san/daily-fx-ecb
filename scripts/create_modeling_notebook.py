@@ -91,6 +91,11 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 
         # ── 2. Imports ───────────────────────────────────────────────────
         code("""\
+# Install packages not available in the default Kaggle environment
+import subprocess
+subprocess.run(["pip", "install", "arch", "--quiet"], check=True)"""),
+
+        code("""\
 import warnings
 warnings.filterwarnings("ignore")
 
@@ -116,7 +121,7 @@ plt.rcParams.update({
         # ── 3. Load data ─────────────────────────────────────────────────
         md("## Load data"),
         code(f"""\
-DATA_DIR = Path("/kaggle/input/ecb-fx-{pair.lower()}-daily")
+DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
 df = pd.read_csv(DATA_DIR / "{pair}_daily.csv", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 

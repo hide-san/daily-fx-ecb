@@ -18,7 +18,7 @@ ecb_raw/all_currencies.csv   (produced by fetch_ecb.py)
 Output
 ------
 datasets/<PAIR>/
-    <PAIR>.csv               single-pair time series with ML-ready features
+    <PAIR>_daily.csv               single-pair time series with ML-ready features
     dataset-metadata.json    Kaggle dataset descriptor
 """
 
@@ -168,7 +168,7 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
             "currencies-and-foreign-exchange",
         ],
         "resources": [{
-            "path":        f"{pair}.csv",
+            "path":        f"{pair}_daily.csv",
             "description": (
                 f"Daily {base}/{quote} cross rate derived from ECB EUR reference rates, "
                 f"1999-01-04 to {latest}. Includes ML-ready features."
@@ -232,7 +232,7 @@ def main() -> None:
           f"({df['date'].min().date()} to {df['date'].max().date()})")
 
     output_dir = pair_output_dir(pair)
-    csv_path   = output_dir / f"{pair}.csv"
+    csv_path   = output_dir / f"{pair}_daily.csv"
     df.to_csv(csv_path, index=False)
     print(f"Saved CSV      : {csv_path}  ({csv_path.stat().st_size / 1024:.1f} KB)")
 

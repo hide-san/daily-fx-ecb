@@ -87,7 +87,7 @@ plt.rcParams.update({
 })"""),
 
         code(f"""\
-DATA_DIR = Path("/kaggle/input/ecb-fx-{pair.lower()}-daily")
+DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 
