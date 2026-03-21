@@ -90,7 +90,7 @@ def parse_pair(pair: str) -> tuple[str, str]:
 
 def dataset_slug(pair: str) -> str:
     """Kaggle dataset identifier. e.g. 'USDJPY' → 'user/ecb-fx-usdjpy-daily'."""
-    return f"{KAGGLE_USER}/ecb-fx-{pair.lower()}-daily"
+    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}"
 
 
 def notebook_slug(pair: str) -> str:
