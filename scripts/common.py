@@ -69,7 +69,11 @@ NOTEBOOKS_ROOT = Path("notebooks")
 # Kaggle identity
 # ---------------------------------------------------------------------------
 
-KAGGLE_USER = os.environ.get("KAGGLE_USERNAME", "YOUR_KAGGLE_USERNAME")
+KAGGLE_USER = (
+    os.environ.get("KAGGLE_USERNAME")          # legacy API key method
+    or os.environ.get("KAGGLE_USER")           # explicit override
+    or "YOUR_KAGGLE_USERNAME"                  # fallback (set before push)
+)
 
 # GitHub Actions hard limit for a single dynamic matrix.
 GITHUB_MATRIX_LIMIT = 256
