@@ -156,6 +156,8 @@ jobs:
 
       # --- Calc ---------------------------------------------------------------
       - name: Calculate ${{ matrix.pair }} time series
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/calc_pair.py --pair ${{ matrix.pair }}
 
       # --- Cover image --------------------------------------------------------
