@@ -3,13 +3,9 @@ scripts/fetch_ecb.py
 ====================
 Job 1 — Fetch all EUR-based daily rates from the ECB API.
 
-Currency discovery
-------------------
-Instead of maintaining a hardcoded currency list, this script uses the
-ECB wildcard key `D.*.EUR.SP00.A` to fetch every currency the ECB
-currently publishes.  The resulting CSV becomes the single source of
-truth for which currencies are available — downstream scripts read it
-rather than relying on any manually maintained list.
+The ECB SDMX API does not support wildcards in the currency key.
+Currencies are listed explicitly in CURRENCIES below.  When the ECB
+adds a new currency, add its ISO 4217 code to that list.
 
 Retry policy
 ------------
@@ -50,6 +46,19 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 log = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
+# Currency list
+#
+# The ECB SDMX API requires an explicit currency list — wildcards are not
+# supported.  Add new ISO 4217 codes here when the ECB introduces them.
+# ---------------------------------------------------------------------------
+
+CURRENCIES = [
+    "USD", "JPY", "GBP", "CHF", "AUD", "CAD", "CNY", "KRW",
+    "HKD", "SGD", "SEK", "NOK", "DKK", "NZD", "MXN", "BRL",
+    "INR", "ZAR", "TRY", "PLN",
+]
+
+# ---------------------------------------------------------------------------
 # Retry policy
 # ---------------------------------------------------------------------------
 
@@ -72,24 +81,23 @@ _retry = retry(
 # ---------------------------------------------------------------------------
 
 @_retry
-def fetch_raw_csv(start: str) -> str:
+def fetch_raw_csv(currencies: list[str], start: str) -> str:
     """
-    Request daily EUR spot rates for ALL currencies in one API call.
+    Request daily EUR spot rates for the given currencies in one API call.
 
-    Uses the wildcard key `D.*.EUR.SP00.A` so the ECB itself determines
-    which currencies are included — no manual list needed.
-
+    ECB SDMX key format:  D.<currencies>.EUR.SP00.A
       D    = daily frequency
-      *    = all available currencies (ECB wildcard)
       SP00 = spot rate type
       A    = average rate series
 
+    Multiple currencies are joined with '+' (e.g. USD+JPY+GBP).
     5xx errors trigger a retry; 4xx errors fail immediately.
     """
-    url    = f"{ECB_API_URL}/D.*.EUR.SP00.A"
+    key    = "+".join(currencies)
+    url    = f"{ECB_API_URL}/D.{key}.EUR.SP00.A"
     params = {"startPeriod": start, "format": "csvdata"}
 
-    log.info("Requesting ECB data for all available currencies ...")
+    log.info(f"Requesting ECB data for {len(currencies)} currencies ...")
     response = requests.get(url, params=params, timeout=60)
 
     if response.status_code >= 500:
@@ -133,7 +141,7 @@ def parse_ecb_csv(raw_csv: str) -> pd.DataFrame:
 # ---------------------------------------------------------------------------
 
 def main() -> None:
-    raw_csv = fetch_raw_csv(ECB_START_DATE)
+    raw_csv = fetch_raw_csv(CURRENCIES, ECB_START_DATE)
     df      = parse_ecb_csv(raw_csv)
 
     ECB_RAW_PATH.parent.mkdir(parents=True, exist_ok=True)

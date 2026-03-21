@@ -3,20 +3,13 @@ scripts/resolve_pairs.py
 =========================
 Job 2 — Resolve the list of currency pairs to process.
 
-Reads the currency list discovered by fetch_ecb.py (from the ECB raw CSV)
-and writes a JSON array to $GITHUB_OUTPUT so Job 3 can consume it as a
-dynamic matrix.  No hardcoded currency list is needed here.
-
-Why dynamic matrix?
--------------------
-The full set of directed pairs can exceed 900 (e.g. 31 currencies → 930).
-GitHub Actions caps a single matrix at 256 entries, so this script warns
-when the resolved list approaches that limit.
+Reads the ECB raw CSV produced by Job 1 to discover which currencies
+were successfully fetched, then builds the pair list from that.
 
 Inputs (via CLI args)
 ---------------------
---pairs   Comma-separated pair codes to filter (e.g. USDJPY,EURUSD).
-          Leave empty to process all combinations from the ECB data.
+--pairs   Comma-separated pair codes (e.g. USDJPY,EURUSD).
+          Leave empty to process all combinations.
 
 Output (written to $GITHUB_OUTPUT)
 -----------------------------------
@@ -35,16 +28,17 @@ import pandas as pd
 from common import ECB_RAW_PATH, GITHUB_MATRIX_LIMIT, append_github_summary
 
 # ---------------------------------------------------------------------------
-# Currency discovery
+# Currency discovery — read from the artifact produced by Job 1
 # ---------------------------------------------------------------------------
 
-def load_available_currencies(path=ECB_RAW_PATH) -> list[str]:
+def load_available_currencies() -> list[str]:
     """
-    Read the currencies actually fetched from the ECB from the raw CSV.
+    Read the currencies that were actually fetched from the ECB CSV.
 
-    This is the authoritative source — no manual list needed.
+    Using the Job 1 artifact as the source ensures the pair list always
+    reflects what was successfully retrieved, not a hardcoded assumption.
     """
-    df = pd.read_csv(path, usecols=["currency"])
+    df = pd.read_csv(ECB_RAW_PATH, usecols=["currency"])
     return sorted(df["currency"].unique().tolist())
 
 # ---------------------------------------------------------------------------
