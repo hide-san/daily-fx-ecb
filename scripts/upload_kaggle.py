@@ -59,38 +59,15 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         print(f"ERROR: {dataset_dir} does not exist.", file=sys.stderr)
         return False
 
-    # Normal path: add a new version to an existing dataset.
-    result = run_command([
-        "kaggle", "datasets", "version",
-        "--path",     str(dataset_dir),
-        "--message",  version_note,
-        "--dir-mode", "zip",
-    ])
-
+    # Try create first — works for both new and existing datasets.
+    result = run_command(["kaggle", "datasets", "create", ...])
     if result.returncode == 0:
-        print(f"{pair}: version update submitted.")
         return True
 
-    # First run: dataset does not exist yet.
-    # Kaggle CLI 2.0 returns 403 Forbidden (not 404) when the dataset
-    # has never been created — include both in the fallback condition.
-    is_not_found = (
-        "404" in result.stderr
-        or "403" in result.stderr
-        or "not found" in result.stderr.lower()
-        or "forbidden" in result.stderr.lower()
-    )
-    if is_not_found:
-        print(f"{pair}: not found on Kaggle — creating for the first time ...")
-        result = run_command([
-            "kaggle", "datasets", "create",
-            "--path",     str(dataset_dir),
-            "--dir-mode", "zip",
-        ])
-        if result.returncode == 0:
-            print(f"{pair}: dataset creation submitted.")
-            return True
-
+    # Dataset already exists — add a new version.
+    result = run_command(["kaggle", "datasets", "version", ...])
+    if result.returncode == 0:
+        return True
     print(f"ERROR: dataset upload failed for {pair}.", file=sys.stderr)
     return False
 
