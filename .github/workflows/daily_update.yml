@@ -1,0 +1,270 @@
+name: Daily ECB FX Pair Pipeline
+
+# ---------------------------------------------------------------------------
+# Pipeline overview
+#
+#  Job 1  [fetch]
+#    Single runner. Fetches all EUR rates from the ECB API (with retry)
+#    and saves the result as an artifact shared with every Job 3 runner.
+#
+#  Job 2  [resolve]
+#    Single runner. Turns the pairs input into a JSON array written to
+#    GITHUB_OUTPUT, consumed by Job 3 as a dynamic matrix.
+#
+#  Job 3  [calc-and-upload]  — dynamic matrix, one runner per pair
+#    Each runner executes the full pipeline for one pair in sequence:
+#      1. calc_pair.py                   compute cross rate + ML features
+#      2. generate_cover.py              create 1280x640 PNG cover image
+#      3. validate_pair.py               data quality gate (blocks on failure)
+#      4. upload_kaggle.py               upload dataset + wait until Kaggle is ready
+#      5. create_notebook.py             generate EDA notebook (.ipynb)
+#      6. upload_notebook.py --kind eda  push EDA notebook to Kaggle Kernels
+#      7. create_modeling_notebook.py    generate ARIMA/GARCH notebook
+#      8. upload_notebook.py --kind modeling  push modeling notebook to Kaggle Kernels
+#    Concurrency is controlled by max-parallel = upload_concurrency.
+#
+#  Job 4  [summary]
+#    Single runner. Writes a Markdown result table to GITHUB_STEP_SUMMARY.
+#    Runs always, even if upstream jobs fail.
+#
+# ---------------------------------------------------------------------------
+# Pair input examples (workflow_dispatch)
+#
+#   USDJPY,EURUSD,GBPJPY   — three specific pairs
+#   USDJPY                 — one pair (useful for testing)
+#   (blank)                — all combinations up to GitHub's 256-job limit
+# ---------------------------------------------------------------------------
+
+on:
+  schedule:
+    # Run every weekday at 15:30 UTC (00:30 JST next day).
+    # ECB publishes rates at ~15:00 UTC, so this gives a 30-minute buffer.
+    - cron: "30 15 * * 1-5"
+
+  workflow_dispatch:
+    inputs:
+      pairs:
+        description: >
+          Comma-separated pair codes to process (e.g. USDJPY,EURUSD,GBPJPY).
+          Leave blank to process all combinations (max 256 per GitHub limit).
+        required: false
+        default: ""
+
+      upload_concurrency:
+        description: "Max parallel Kaggle uploads (1-20). Lower = safer for API rate limits."
+        required: false
+        default: "5"
+        type: choice
+        options: ["1", "2", "3", "4", "5", "6", "8", "10", "20"]
+
+      dry_run:
+        description: "Set to true to skip Kaggle upload (smoke test only)."
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+# Cancel any in-progress run of the same workflow to avoid duplicate uploads.
+# Manual dispatch runs are never cancelled (each gets a unique ref).
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ==========================================================================
+  # Job 1: Fetch — one ECB request, result shared via artifact
+  # ==========================================================================
+  fetch:
+    name: "Fetch ECB Data"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Fetch all EUR rates from ECB
+        run: python scripts/fetch_ecb.py
+
+      - name: Upload raw data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecb-raw-${{ github.run_id }}
+          path: ecb_raw/
+          retention-days: 1
+
+  # ==========================================================================
+  # Job 2: Resolve — turn the pairs input into a dynamic matrix JSON array
+  # ==========================================================================
+  resolve:
+    name: "Resolve Pairs"
+    needs: fetch
+    runs-on: ubuntu-latest
+
+    outputs:
+      pairs_json: ${{ steps.resolve.outputs.pairs_json }}
+      pair_count: ${{ steps.resolve.outputs.pair_count }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Download ECB raw data
+        uses: actions/download-artifact@v4
+        with:
+          name: ecb-raw-${{ github.run_id }}
+          path: ecb_raw/
+
+      - name: Resolve pair list
+        id: resolve
+        run: python scripts/resolve_pairs.py --pairs "${{ github.event.inputs.pairs }}"
+
+      - name: Log resolved pairs
+        run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
+
+  # ==========================================================================
+  # Job 3: Calc + Upload — one runner per pair, dynamic matrix
+  #
+  #  Timeline example with upload_concurrency: 3
+  #
+  #   runner-USDJPY  [calc]──[cover]──[validate]──[upload]──[nb-eda]──[nb-model]
+  #   runner-EURUSD  [calc]──[cover]──[validate]──[upload]──[nb-eda]──[nb-model]
+  #   runner-GBPJPY  [calc]──[cover]──[validate]──[upload]──[nb-eda]──[nb-model]
+  #                                     runner-EURJPY  [...] (next slot)
+  #
+  # ==========================================================================
+  calc-and-upload:
+    name: "${{ matrix.pair }}: Calc → Upload"
+    needs: resolve
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '5') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Download ECB raw data
+        uses: actions/download-artifact@v4
+        with:
+          name: ecb-raw-${{ github.run_id }}
+          path: ecb_raw/
+
+      # --- Calc ---------------------------------------------------------------
+      - name: Calculate ${{ matrix.pair }} time series
+        run: python scripts/calc_pair.py --pair ${{ matrix.pair }}
+
+      # --- Cover image --------------------------------------------------------
+      - name: Generate ${{ matrix.pair }} cover image
+        run: python scripts/generate_cover.py --pair ${{ matrix.pair }}
+
+      # --- Validation gate ----------------------------------------------------
+      - name: Validate ${{ matrix.pair }} data quality
+        run: python scripts/validate_pair.py --pair ${{ matrix.pair }}
+
+      # --- Kaggle credentials -------------------------------------------------
+      - name: Configure Kaggle credentials
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
+        run: |
+          mkdir -p ~/.kaggle
+          printf '{"username":"%s","key":"%s"}' \
+            "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
+          chmod 600 ~/.kaggle/kaggle.json
+
+      # --- Dataset upload + readiness check -----------------------------------
+      - name: Upload ${{ matrix.pair }} dataset to Kaggle
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_kaggle.py --pair ${{ matrix.pair }} $DRY_RUN_FLAG
+
+      # --- EDA notebook -------------------------------------------------------
+      - name: Generate ${{ matrix.pair }} EDA notebook
+        run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
+
+      - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind eda $DRY_RUN_FLAG
+
+      # --- Modeling notebook --------------------------------------------------
+      - name: Generate ${{ matrix.pair }} modeling notebook
+        run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
+
+      - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind modeling $DRY_RUN_FLAG
+
+      # --- Failure artifact ---------------------------------------------------
+      - name: Save dataset as artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-${{ matrix.pair }}-${{ github.run_id }}
+          path: datasets/${{ matrix.pair }}/
+          retention-days: 3
+
+  # ==========================================================================
+  # Job 4: Summary + CHANGELOG update
+  # ==========================================================================
+  summary:
+    name: "Pipeline Summary"
+    needs: [fetch, resolve, calc-and-upload]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Use a token with write permission so we can push the CHANGELOG commit.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Write Markdown summary
+        run: |
+          {
+            echo "## Daily FX Pipeline — $(date -u +'%Y-%m-%d %H:%M UTC')"
+            echo ""
+            echo "| Job | Result |"
+            echo "|---|---|"
+            echo "| Fetch ECB data | ${{ needs.fetch.result }} |"
+            echo "| Resolve pairs  | ${{ needs.resolve.result }} |"
+            echo "| Calc + Upload (${{ needs.resolve.outputs.pair_count }} pairs, x${{ github.event.inputs.upload_concurrency || '5' }} parallel) | ${{ needs.calc-and-upload.result }} |"
+            echo ""
+            echo "**Pairs input**       : ${{ github.event.inputs.pairs || '(all)' }}"
+            echo "**Upload concurrency**: ${{ github.event.inputs.upload_concurrency || '5' }}"
+            echo "**Dry run**           : ${{ github.event.inputs.dry_run || 'false' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      # Append one line to CHANGELOG.md only when the full pipeline succeeded
+      # and this was not a dry run.  Skipped on failure so the log stays clean.
+      - name: Update CHANGELOG.md
+        if: |
+          needs.calc-and-upload.result == 'success' &&
+          github.event.inputs.dry_run != 'true'
+        run: |
+          DATE=$(date -u +'%Y-%m-%d')
+          PAIRS="${{ needs.resolve.outputs.pair_count }}"
+          LINE="## ${DATE} — Daily update (${PAIRS} pairs)"
+
+          # Avoid duplicate entries if the job runs more than once on the same day.
+          if grep -qF "## ${DATE}" CHANGELOG.md; then
+            echo "CHANGELOG already has an entry for ${DATE} — skipping."
+          else
+            # Insert after the first line (the "# Changelog" heading).
+            sed -i "1a\\\\n${LINE}" CHANGELOG.md
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add CHANGELOG.md
+            git commit -m "chore: daily update ${DATE} (${PAIRS} pairs)"
+            git push
+            echo "CHANGELOG updated and pushed."
+          fi

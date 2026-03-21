@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Pipeline outputs — generated at runtime, never committed
+ecb_raw/
+datasets/
+notebooks/
+
+# Kaggle credentials — never commit
+.kaggle/
+kaggle.json
+
+# OS / editor
+.DS_Store
+.env
+*.swp

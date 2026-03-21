@@ -1,0 +1,21 @@
+# Daily FX — runtime dependencies
+# Install with:  pip install -r requirements.txt
+
+# Pipeline core
+requests>=2.31
+pandas>=2.0
+numpy>=1.26
+tenacity>=8.2
+
+# Cover image generation
+cairosvg>=2.7
+
+# Kaggle CLI
+kaggle>=1.6
+
+# Modeling notebook
+statsmodels>=0.14
+arch>=6.3
+
+# Development / CI only (not needed in GitHub Actions runners)
+# pip install -r requirements-dev.txt
