@@ -95,12 +95,12 @@ def dataset_slug(pair: str) -> str:
 
 def notebook_slug(pair: str) -> str:
     """Kaggle kernel identifier for the EDA notebook."""
-    return f"{KAGGLE_USER}/ecb-fx-{pair.lower()}-eda"
+    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-eda-baseline-forecast"
 
 
 def modeling_notebook_slug(pair: str) -> str:
     """Kaggle kernel identifier for the modeling notebook."""
-    return f"{KAGGLE_USER}/ecb-fx-{pair.lower()}-modeling"
+    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-arima-garch-modeling"
 
 
 def dataset_title(pair: str) -> str:
