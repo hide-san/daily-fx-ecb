@@ -42,12 +42,6 @@ READY_POLL_SEC     = 30
 # ---------------------------------------------------------------------------
 
 def upload_dataset(pair: str, dry_run: bool) -> bool:
-    """
-    Push datasets/<pair>/ to Kaggle as a versioned dataset.
-
-    Returns True if the upload command succeeded, False otherwise.
-    Does not wait for processing — call wait_until_ready() after this.
-    """
     dataset_dir  = DATASETS_ROOT / pair
     version_note = f"Daily update: {datetime.utcnow().strftime('%Y-%m-%d')}"
 
@@ -59,18 +53,33 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         print(f"ERROR: {dataset_dir} does not exist.", file=sys.stderr)
         return False
 
-    # Try create first — works for both new and existing datasets.
-    result = run_command(["kaggle", "datasets", "create", ...])
+    # Try to create the dataset first.
+    # If it already exists, Kaggle returns a non-zero exit code → fall back to version.
+    result = run_command([
+        "kaggle", "datasets", "create",
+        "--path",     str(dataset_dir),
+        "--dir-mode", "zip",
+    ])
+
     if result.returncode == 0:
+        print(f"{pair}: dataset created successfully.")
         return True
 
-    # Dataset already exists — add a new version.
-    result = run_command(["kaggle", "datasets", "version", ...])
+    # Dataset already exists — add a new version instead.
+    print(f"{pair}: dataset exists — adding new version ...")
+    result = run_command([
+        "kaggle", "datasets", "version",
+        "--path",     str(dataset_dir),
+        "--message",  version_note,
+        "--dir-mode", "zip",
+    ])
+
     if result.returncode == 0:
+        print(f"{pair}: version update submitted.")
         return True
+
     print(f"ERROR: dataset upload failed for {pair}.", file=sys.stderr)
     return False
-
 
 # ---------------------------------------------------------------------------
 # Readiness polling
