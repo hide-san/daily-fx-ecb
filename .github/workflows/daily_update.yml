@@ -173,12 +173,23 @@ jobs:
           KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
         run: |
           mkdir -p ~/.kaggle
-          printf '{"username":"%s","key":"%s"}' \
-            "$KAGGLE_USERNAME" "$KAGGLE_KEY" > ~/.kaggle/kaggle.json
-          chmod 600 ~/.kaggle/kaggle.json
+          python3 - << 'EOF'
+          import json, os, pathlib
+          creds = {
+              "username": os.environ["KAGGLE_USERNAME"],
+              "key":      os.environ["KAGGLE_KEY"],
+          }
+          path = pathlib.Path.home() / ".kaggle" / "kaggle.json"
+          path.write_text(json.dumps(creds))
+          path.chmod(0o600)
+          print(f"kaggle.json written ({len(creds['key'])} char key)")
+          EOF
 
       # --- Dataset upload + readiness check -----------------------------------
       - name: Upload ${{ matrix.pair }} dataset to Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
         run: |
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
@@ -189,6 +200,9 @@ jobs:
         run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
         run: |
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
@@ -199,6 +213,9 @@ jobs:
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+          KAGGLE_KEY:      ${{ secrets.KAGGLE_KEY }}
         run: |
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
