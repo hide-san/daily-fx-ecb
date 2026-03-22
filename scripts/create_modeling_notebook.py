@@ -227,7 +227,7 @@ plt.tight_layout()
 plt.show()
 
 rmse = np.sqrt(((test_returns.values[:HORIZON] - fc_mean.values[:HORIZON]) ** 2).mean())
-print(f"ARIMA RMSE (log returns, {HORIZON}-day) : {rmse:.6f}")"""),
+# print(f"ARIMA RMSE (log returns, {HORIZON}-day) : {rmse:.6f}")"""), # FIXME
 
         # ── 8. GARCH motivation ──────────────────────────────────────────
         md("""\
