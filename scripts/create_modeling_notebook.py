@@ -353,12 +353,13 @@ def write_kernel_metadata(pair: str) -> None:
         "code_file":           f"{pair}_modeling.ipynb",
         "language":            "python",
         "kernel_type":         "notebook",
-        "is_private":          True,   # set to False in Kaggle GUI when ready
+        "is_private":          True,
         "enable_gpu":          False,
         "enable_internet":     True,
+        "keywords":            ["finance", "economics", "tabular", "time-series"],
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [notebook_slug(pair)],   # links to EDA notebook
+        "kernel_sources":      [notebook_slug(pair)],
     }
 
     output_dir = notebook_output_dir(pair)

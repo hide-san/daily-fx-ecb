@@ -217,9 +217,10 @@ def write_kernel_metadata(pair: str) -> None:
         "code_file":           f"{pair}_eda.ipynb",
         "language":            "python",
         "kernel_type":         "notebook",
-        "is_private":          True,   # set to False in Kaggle GUI when ready
+        "is_private":          True,
         "enable_gpu":          False,
         "enable_internet":     False,
+        "keywords":            ["finance", "economics", "tabular", "time-series"],
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
         "kernel_sources":      [],
