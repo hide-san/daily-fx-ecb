@@ -355,7 +355,7 @@ def write_kernel_metadata(pair: str) -> None:
         "kernel_type":         "notebook",
         "is_private":          True,   # set to False in Kaggle GUI when ready
         "enable_gpu":          False,
-        "enable_internet":     False,
+        "enable_internet":     True,
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
         "kernel_sources":      [notebook_slug(pair)],   # links to EDA notebook
