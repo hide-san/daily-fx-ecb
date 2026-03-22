@@ -320,7 +320,7 @@ print(f"Day-30 forecast std: {{fc_vol[-1]:.6f}}")"""),
 ---
 
 Dataset updated every business day.
-Source: © European Central Bank - https://data.ecb.europa.eu
+Source: European Central Bank - https://data.ecb.europa.eu
 """),
     ]
 
