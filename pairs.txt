@@ -1,0 +1,39 @@
+# pairs.txt
+# ---------------------------------------------------------------------------
+# Default currency pairs processed on every scheduled run.
+# One pair per line. Lines starting with # are ignored.
+#
+# Used by resolve_pairs.py when --pairs is not specified.
+# To process different pairs on a scheduled run, edit this file.
+# To override at runtime, use the pairs input in workflow_dispatch.
+# ---------------------------------------------------------------------------
+
+# Major pairs
+USDJPY
+EURUSD
+GBPUSD
+USDCHF
+AUDUSD
+USDCAD
+NZDUSD
+
+# Euro crosses
+EURJPY
+EURGBP
+EURCHF
+EURAUD
+EURCAD
+EURNZD
+
+# Pound crosses
+GBPJPY
+GBPCHF
+GBPAUD
+GBPCAD
+GBPNZD
+
+# Yen crosses
+AUDJPY
+CADJPY
+CHFJPY
+NZDJPY
