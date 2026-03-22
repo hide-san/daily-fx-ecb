@@ -226,8 +226,10 @@ ax.legend()
 plt.tight_layout()
 plt.show()
 
-rmse = np.sqrt(((test_returns.values[:HORIZON] - fc_mean.values[:HORIZON]) ** 2).mean())
-# print(f"ARIMA RMSE (log returns, {HORIZON}-day) : {rmse:.6f}")"""), # FIXME
+n = min(HORIZON, len(test_returns), len(fc_mean))
+
+rmse = np.sqrt(((test_returns.values[:n] - fc_mean.values[:n]) ** 2).mean())
+print(f"ARIMA RMSE (log returns, {n}-day overlap) : {rmse:.6f}")
 
         # ── 8. GARCH motivation ──────────────────────────────────────────
         md("""\
