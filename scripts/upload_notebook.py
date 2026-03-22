@@ -83,9 +83,9 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
 
     if result.returncode == 0:
         output = result.stdout + result.stderr
-        # Kaggle kernels push returns exit code 0 even when dataset sources
-        # could not be linked. Treat this as a failure.
-        if "could not be added" in output:
+        # "could not be added to the kernel" means dataset sources failed to link.
+        # Tag warnings ("not valid tags") are harmless — do not treat as failure.
+        if "could not be added to the kernel" in output:
             print(
                 f"ERROR: {kind} notebook dataset source failed for {pair}:\n{output}",
                 file=sys.stderr,

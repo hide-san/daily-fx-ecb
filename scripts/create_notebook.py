@@ -220,7 +220,7 @@ def write_kernel_metadata(pair: str) -> None:
         "is_private":          True,
         "enable_gpu":          False,
         "enable_internet":     False,
-        "keywords":            ["finance", "economics", "tabular", "time-series"],
+        "keywords":            ["finance", "economics"],
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
         "kernel_sources":      [],
