@@ -236,7 +236,7 @@ print(f"ARIMA RMSE (log returns, {n}-day overlap) : {rmse:.6f}")
 ## GARCH — volatility clustering
 
 ARIMA models the conditional mean but assumes constant variance.
-In FX markets, volatility clusters — calm periods are followed by calm,
+In FX markets, volatility clusters - calm periods are followed by calm,
 turbulent periods by turbulent.  The GARCH(1,1) model captures this
 by letting the variance evolve over time.
 """),
