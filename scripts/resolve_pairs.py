@@ -117,29 +117,29 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    # Discover available currencies from the ECB raw data (produced by Job 1).
-    currencies = load_available_currencies()
-    print(f"Available currencies ({len(currencies)}): {currencies}")
-
-    valid_set = set(all_pairs(currencies))
-
     if args.pairs.strip():
         # Priority 1: explicit --pairs argument (workflow_dispatch)
-        source    = "--pairs argument"
-        requested = parse_pair_input(args.pairs)
-        resolved  = filter_valid_pairs(requested, valid_set)
+        # Requires ECB CSV to validate pairs against available currencies.
+        source     = "--pairs argument"
+        currencies = load_available_currencies()
+        print(f"Available currencies ({len(currencies)}): {currencies}")
+        valid_set  = set(all_pairs(currencies))
+        requested  = parse_pair_input(args.pairs)
+        resolved   = filter_valid_pairs(requested, valid_set)
 
     elif PAIRS_FILE.exists():
-        # Priority 2: pairs.txt (scheduled runs)
-        source    = str(PAIRS_FILE)
-        requested = load_pairs_file(PAIRS_FILE)
-        resolved  = filter_valid_pairs(requested, valid_set)
-        print(f"Using {PAIRS_FILE} ({len(requested)} pairs listed).")
+        # Priority 2: pairs.txt — no ECB CSV needed.
+        # The file is managed manually so pairs are already known to be valid.
+        source   = str(PAIRS_FILE)
+        resolved = load_pairs_file(PAIRS_FILE)
+        print(f"Using {PAIRS_FILE} ({len(resolved)} pairs listed).")
 
     else:
-        # Priority 3: all combinations (fallback)
-        source   = "all combinations (no pairs.txt found)"
-        resolved = all_pairs(currencies)
+        # Priority 3: all combinations — requires ECB CSV.
+        source     = "all combinations (no pairs.txt found)"
+        currencies = load_available_currencies()
+        print(f"Available currencies ({len(currencies)}): {currencies}")
+        resolved   = all_pairs(currencies)
 
     print(f"Source  : {source}")
     print(f"Resolved: {len(resolved)} pairs.")

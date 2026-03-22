@@ -3,13 +3,10 @@ name: Notebook Update Pipeline
 # ---------------------------------------------------------------------------
 # Generates and pushes EDA + modeling notebooks to Kaggle Kernels.
 #
-# Separated from the daily data pipeline so that:
-#   - Data updates are not blocked by notebook failures
-#   - Notebooks can be updated on a different (slower) schedule
-#   - Each pipeline can be re-run independently
+# Notebooks read data from Kaggle datasets (not from ECB raw data),
+# so no ECB fetch is needed.  Pairs are resolved from pairs.txt directly.
 #
 # Schedule: every Monday at 16:00 UTC (01:00 JST Tuesday)
-#           — after the daily data pipeline has run at 15:30 UTC.
 # ---------------------------------------------------------------------------
 
 on:
@@ -21,7 +18,7 @@ on:
       pairs:
         description: >
           Comma-separated pair codes (e.g. USDJPY,EURUSD).
-          Leave blank to process all combinations (max 256 per GitHub limit).
+          Leave blank to use pairs.txt.
         required: false
         default: ""
 
@@ -46,32 +43,10 @@ concurrency:
 jobs:
 
   # ==========================================================================
-  # Job 1: Fetch — need the ECB raw CSV to resolve pairs
-  # ==========================================================================
-  fetch:
-    name: "Fetch ECB Data"
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/python-setup
-
-      - name: Fetch all EUR rates from ECB
-        run: python scripts/fetch_ecb.py
-
-      - name: Upload raw data artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ecb-raw-${{ github.run_id }}
-          path: ecb_raw/
-          retention-days: 1
-
-  # ==========================================================================
-  # Job 2: Resolve
+  # Job 1: Resolve — read pairs.txt directly, no ECB fetch needed
   # ==========================================================================
   resolve:
     name: "Resolve Pairs"
-    needs: fetch
     runs-on: ubuntu-latest
 
     outputs:
@@ -82,12 +57,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
 
-      - name: Download ECB raw data
-        uses: actions/download-artifact@v4
-        with:
-          name: ecb-raw-${{ github.run_id }}
-          path: ecb_raw/
-
       - name: Resolve pair list
         id: resolve
         run: python scripts/resolve_pairs.py --pairs "${{ github.event.inputs.pairs }}"
@@ -96,7 +65,7 @@ jobs:
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
   # ==========================================================================
-  # Job 3: Generate + Push Notebooks — one runner per pair
+  # Job 2: Generate + Push Notebooks — one runner per pair
   # ==========================================================================
   push-notebooks:
     name: "${{ matrix.pair }}: Notebooks"
@@ -153,7 +122,7 @@ jobs:
           retention-days: 3
 
   # ==========================================================================
-  # Job 4: Summary
+  # Job 3: Summary
   # ==========================================================================
   summary:
     name: "Notebook Summary"
@@ -172,6 +141,6 @@ jobs:
             echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
             echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-notebooks.result }} |"
             echo ""
-            echo "**Pairs input**: ${{ github.event.inputs.pairs || '(all)' }}"
+            echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
             echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"
           } >> "$GITHUB_STEP_SUMMARY"
