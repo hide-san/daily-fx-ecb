@@ -69,9 +69,9 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
         md(f"""\
 # {modeling_notebook_title(pair)}
 
-**Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})  
-**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})  
-**Pair**    : {base} / {quote}  
+**Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})
+**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})
+**Pair**    : {base} / {quote}
 **Source**  : European Central Bank (ECB) — free reuse with attribution
 """),
 
@@ -310,14 +310,14 @@ print(f"Day-30 forecast std: {{fc_vol[-1]:.6f}}")"""),
 
 ### Ideas to extend this notebook
 
-- **Auto-ARIMA** (`pmdarima`) — automated order selection via AIC/BIC  
-- **EGARCH / GJR-GARCH** — asymmetric volatility (leverage effect)  
-- **Multivariate GARCH (DCC)** — model co-volatility across pairs  
-- **Combining ARIMA + GARCH** — ARIMA-GARCH joint estimation  
+- **Auto-ARIMA** (`pmdarima`) — automated order selection via AIC/BIC
+- **EGARCH / GJR-GARCH** — asymmetric volatility (leverage effect)
+- **Multivariate GARCH (DCC)** — model co-volatility across pairs
+- **Combining ARIMA + GARCH** — ARIMA-GARCH joint estimation
 
 ---
 
-Dataset updated every business day.  
+Dataset updated every business day.
 Source: © European Central Bank — https://data.ecb.europa.eu
 """),
     ]

@@ -53,8 +53,8 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
         md(f"""\
 # {notebook_title(pair)}
 
-**Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
-**Source**: European Central Bank (ECB) — free reuse with attribution  
+**Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})
+**Source**: European Central Bank (ECB) — free reuse with attribution
 **Pair**: {base} / {quote}
 """),
 
@@ -179,14 +179,14 @@ plt.show()"""),
         md("""\
 ## Next steps
 
-- **ARIMA / SARIMA** — capture autocorrelation in the return series  
-- **GARCH** — model time-varying volatility  
-- **LightGBM / XGBoost** — use `ma_*`, `volatility_20d`, and calendar features  
-- **Multivariate** — combine several pairs from other ECB datasets  
+- **ARIMA / SARIMA** — capture autocorrelation in the return series
+- **GARCH** — model time-varying volatility
+- **LightGBM / XGBoost** — use `ma_*`, `volatility_20d`, and calendar features
+- **Multivariate** — combine several pairs from other ECB datasets
 
 ---
 
-Dataset updated every business day.  
+Dataset updated every business day.
 Source: © European Central Bank — https://data.ecb.europa.eu
 """),
     ]

@@ -175,17 +175,61 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
             ),
             "schema": {
                 "fields": [
-                    {"name": "date",             "description": "Business day (YYYY-MM-DD)",                          "type": "date"},
-                    {"name": "rate",             "description": f"Cross rate: units of {quote} per 1 {base}",         "type": "number"},
-                    {"name": "daily_return_pct", "description": "Day-over-day percentage change (%)",                  "type": "number"},
-                    {"name": "log_return",       "description": "Natural log of the daily return ratio",               "type": "number"},
-                    {"name": "ma_7d",            "description": "7-day rolling mean of rate (~1 week)",               "type": "number"},
-                    {"name": "ma_21d",           "description": "21-day rolling mean of rate (~1 month)",             "type": "number"},
-                    {"name": "ma_63d",           "description": "63-day rolling mean of rate (~1 quarter)",           "type": "number"},
-                    {"name": "volatility_20d",   "description": "20-day rolling std of daily_return_pct",             "type": "number"},
-                    {"name": "year",             "description": "Calendar year",                                       "type": "integer"},
-                    {"name": "month",            "description": "Calendar month (1–12)",                              "type": "integer"},
-                    {"name": "day_of_week",      "description": "Day of week (0=Monday, 4=Friday)",                   "type": "integer"},
+                    {
+                        "name": "date",
+                        "description": "Business day (YYYY-MM-DD)",
+                        "type": "date",
+                    },
+                    {
+                        "name": "rate",
+                        "description": f"Cross rate: {quote} per 1 {base}",
+                        "type": "number",
+                    },
+                    {
+                        "name": "daily_return_pct",
+                        "description": "Day-over-day percentage change (%)",
+                        "type": "number",
+                    },
+                    {
+                        "name": "log_return",
+                        "description": "Natural log of the daily return ratio",
+                        "type": "number",
+                    },
+                    {
+                        "name": "ma_7d",
+                        "description": "7-day rolling mean (~1 week)",
+                        "type": "number",
+                    },
+                    {
+                        "name": "ma_21d",
+                        "description": "21-day rolling mean (~1 month)",
+                        "type": "number",
+                    },
+                    {
+                        "name": "ma_63d",
+                        "description": "63-day rolling mean (~1 quarter)",
+                        "type": "number",
+                    },
+                    {
+                        "name": "volatility_20d",
+                        "description": "20-day rolling std of daily_return_pct",
+                        "type": "number",
+                    },
+                    {
+                        "name": "year",
+                        "description": "Calendar year",
+                        "type": "integer",
+                    },
+                    {
+                        "name": "month",
+                        "description": "Calendar month (1-12)",
+                        "type": "integer",
+                    },
+                    {
+                        "name": "day_of_week",
+                        "description": "Day of week (0=Monday, 4=Friday)",
+                        "type": "integer",
+                    },
                 ]
             },
         }],
