@@ -5,19 +5,23 @@ Job 2 — Resolve the list of currency pairs to process.
 
 Priority order for pair selection
 ----------------------------------
-1. --pairs argument  (workflow_dispatch — manual override)
-2. pairs.txt         (scheduled runs — default list)
-3. all combinations  (fallback if pairs.txt does not exist)
+1. --pairs argument  — explicit list (workflow_dispatch)
+2. pairs.txt         — default list for scheduled runs
+3. all combinations  — fallback (requires ECB CSV)
+
+ECB CSV is only loaded for priority 3 (fallback).
+Priorities 1 and 2 work without the ECB CSV, so this script
+can run in the notebook pipeline without a fetch step.
 
 Inputs (via CLI args)
 ---------------------
 --pairs   Comma-separated pair codes (e.g. USDJPY,EURUSD).
-          Leave empty to fall back to pairs.txt or all combinations.
+          Empty = use pairs.txt (if present) or all combinations.
 
 Output (written to $GITHUB_OUTPUT)
 -----------------------------------
-pairs_json   JSON array of pair strings, e.g. ["USDJPY","EURUSD","GBPJPY"]
-pair_count   Total number of pairs to process (for the summary log)
+pairs_json   JSON array of pair strings
+pair_count   Total number of pairs to process
 """
 
 import argparse
@@ -35,16 +39,11 @@ from common import ECB_RAW_PATH, GITHUB_MATRIX_LIMIT, append_github_summary
 PAIRS_FILE = Path("pairs.txt")
 
 # ---------------------------------------------------------------------------
-# Currency discovery — read from the artifact produced by Job 1
+# Currency discovery — only used as fallback when no pairs source is set
 # ---------------------------------------------------------------------------
 
 def load_available_currencies() -> list[str]:
-    """
-    Read the currencies that were actually fetched from the ECB CSV.
-
-    Using the Job 1 artifact as the source ensures the pair list always
-    reflects what was successfully retrieved, not a hardcoded assumption.
-    """
+    """Read currencies from the ECB raw CSV produced by fetch_ecb.py."""
     df = pd.read_csv(ECB_RAW_PATH, usecols=["currency"])
     return sorted(df["currency"].unique().tolist())
 
@@ -76,7 +75,6 @@ def parse_pair_input(raw: str) -> list[str]:
     Parse a comma-separated pair string into a clean, deduplicated list.
 
     Accepts mixed case and surrounding whitespace.
-    Returns uppercase pair codes like ["USDJPY", "EURUSD"].
     """
     return list(dict.fromkeys(
         p.strip().upper()
@@ -86,12 +84,7 @@ def parse_pair_input(raw: str) -> list[str]:
 
 
 def filter_valid_pairs(pairs: list[str], valid_set: set[str]) -> list[str]:
-    """
-    Return only recognised pairs; warn about any unknown ones.
-
-    Unknown pairs are printed to stderr so they appear as warnings in
-    the GitHub Actions log without failing the job.
-    """
+    """Return only recognised pairs; warn about any unknown ones."""
     known   = [p for p in pairs if p in valid_set]
     unknown = [p for p in pairs if p not in valid_set]
 
@@ -117,29 +110,26 @@ def main() -> None:
     )
     args = parser.parse_args()
 
+    currencies_info = "n/a"   # shown in summary; only set when ECB CSV is read
+
     if args.pairs.strip():
-        # Priority 1: explicit --pairs argument (workflow_dispatch)
-        # Requires ECB CSV to validate pairs against available currencies.
-        source     = "--pairs argument"
-        currencies = load_available_currencies()
-        print(f"Available currencies ({len(currencies)}): {currencies}")
-        valid_set  = set(all_pairs(currencies))
-        requested  = parse_pair_input(args.pairs)
-        resolved   = filter_valid_pairs(requested, valid_set)
+        # Priority 1: --pairs argument — no ECB CSV needed.
+        source   = "--pairs argument"
+        resolved = parse_pair_input(args.pairs)
 
     elif PAIRS_FILE.exists():
         # Priority 2: pairs.txt — no ECB CSV needed.
-        # The file is managed manually so pairs are already known to be valid.
         source   = str(PAIRS_FILE)
         resolved = load_pairs_file(PAIRS_FILE)
         print(f"Using {PAIRS_FILE} ({len(resolved)} pairs listed).")
 
     else:
         # Priority 3: all combinations — requires ECB CSV.
-        source     = "all combinations (no pairs.txt found)"
-        currencies = load_available_currencies()
+        source          = "all combinations (no pairs.txt found)"
+        currencies      = load_available_currencies()
+        currencies_info = str(len(currencies))
         print(f"Available currencies ({len(currencies)}): {currencies}")
-        resolved   = all_pairs(currencies)
+        resolved = all_pairs(currencies)
 
     print(f"Source  : {source}")
     print(f"Resolved: {len(resolved)} pairs.")
@@ -164,7 +154,7 @@ def main() -> None:
     append_github_summary(
         f"### Resolved pairs\n"
         f"- Source              : {source}\n"
-        f"- Currencies available: {len(currencies)}\n"
+        f"- Currencies available: {currencies_info}\n"
         f"- Pairs resolved      : {len(resolved)}\n"
         f"- Pairs               : {', '.join(resolved)}\n"
     )
