@@ -1,13 +1,13 @@
 """
 scripts/create_modeling_notebook.py  --pair <BASEQUOTE>
 ========================================================
-Job 3 — Generate the modeling notebook for one currency pair.
+Job 3 - Generate the modeling notebook for one currency pair.
 
 This is the second notebook in the Daily FX series.  It picks up
 where the EDA notebook leaves off and fits two statistical models:
 
-  1. ARIMA  — captures autocorrelation in the return series
-  2. GARCH  — models time-varying volatility (heteroskedasticity)
+  1. ARIMA  - captures autocorrelation in the return series
+  2. GARCH  - models time-varying volatility (heteroskedasticity)
 
 The notebook is self-contained and links back to the EDA notebook
 and the dataset, so readers can navigate the full series easily.
@@ -51,10 +51,10 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
     2. Imports
     3. Load data
     4. Stationarity check (ADF test)
-    5. ACF / PACF — choosing ARIMA order
+    5. ACF / PACF - choosing ARIMA order
     6. ARIMA fit and diagnostics
     7. ARIMA forecast (30-day horizon)
-    8. GARCH — motivation (volatility clustering)
+    8. GARCH - motivation (volatility clustering)
     9. GARCH fit and conditional volatility plot
     10. GARCH volatility forecast
     11. Summary and next steps
@@ -72,7 +72,7 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 **Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})
 **Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})
 **Pair**    : {base} / {quote}
-**Source**  : European Central Bank (ECB) — free reuse with attribution
+**Source**  : European Central Bank (ECB) - free reuse with attribution
 """),
 
         # ── 1. Series navigation ─────────────────────────────────────────
@@ -125,7 +125,7 @@ DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
 df = pd.read_csv(DATA_DIR / "{pair}.csv", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 
-# Work with log returns — stationary by construction and preferred for modelling
+# Work with log returns - stationary by construction and preferred for modelling
 returns = df["log_return"].dropna().reset_index(drop=True)
 
 print(f"Rows    : {{len(df):,}}")
@@ -148,20 +148,20 @@ print(f"p-value       : {adf_result[1]:.4f}")
 print(f"Lags used     : {adf_result[2]}")
 print()
 if adf_result[1] < 0.05:
-    print("Series is stationary (p < 0.05) — suitable for ARIMA.")
+    print("Series is stationary (p < 0.05) - suitable for ARIMA.")
 else:
-    print("Series may not be stationary — consider differencing.")"""),
+    print("Series may not be stationary - consider differencing.")"""),
 
         # ── 5. ACF / PACF ────────────────────────────────────────────────
         md("""\
-## ACF / PACF — choosing ARIMA order
+## ACF / PACF - choosing ARIMA order
 
 The autocorrelation function (ACF) and partial ACF (PACF) guide the choice
 of ARIMA(p, d, q):
 
-- **p** (AR order) — where PACF cuts off
-- **d** (differencing) — 0, since log returns are already stationary
-- **q** (MA order) — where ACF cuts off
+- **p** (AR order) - where PACF cuts off
+- **d** (differencing) - 0, since log returns are already stationary
+- **q** (MA order) - where ACF cuts off
 """),
         code("""\
 fig, axes = plt.subplots(1, 2, figsize=(14, 4))
@@ -174,7 +174,7 @@ plt.show()"""),
         md("""\
 ## ARIMA model
 
-We fit ARIMA(1, 0, 1) as a starting point — a common choice for daily FX
+We fit ARIMA(1, 0, 1) as a starting point - a common choice for daily FX
 log returns.  Adjust p and q based on the ACF / PACF above.
 """),
         code(f"""\
@@ -188,7 +188,7 @@ print(arima.summary())"""),
         code("""\
 # In-sample residual diagnostics
 fig = arima.plot_diagnostics(figsize=(14, 8))
-plt.suptitle("ARIMA(1,0,1) — residual diagnostics", y=1.01)
+plt.suptitle("ARIMA(1,0,1) - residual diagnostics", y=1.01)
 plt.tight_layout()
 plt.show()"""),
 
@@ -233,7 +233,7 @@ print(f"ARIMA RMSE (log returns, {n}-day overlap) : {rmse:.6f}")
 
         # ── 8. GARCH motivation ──────────────────────────────────────────
         md("""\
-## GARCH — volatility clustering
+## GARCH - volatility clustering
 
 ARIMA models the conditional mean but assumes constant variance.
 In FX markets, volatility clusters - calm periods are followed by calm,
@@ -312,15 +312,15 @@ print(f"Day-30 forecast std: {{fc_vol[-1]:.6f}}")"""),
 
 ### Ideas to extend this notebook
 
-- **Auto-ARIMA** (`pmdarima`) — automated order selection via AIC/BIC
-- **EGARCH / GJR-GARCH** — asymmetric volatility (leverage effect)
-- **Multivariate GARCH (DCC)** — model co-volatility across pairs
-- **Combining ARIMA + GARCH** — ARIMA-GARCH joint estimation
+- **Auto-ARIMA** (`pmdarima`) - automated order selection via AIC/BIC
+- **EGARCH / GJR-GARCH** - asymmetric volatility (leverage effect)
+- **Multivariate GARCH (DCC)** - model co-volatility across pairs
+- **Combining ARIMA + GARCH** - ARIMA-GARCH joint estimation
 
 ---
 
 Dataset updated every business day.
-Source: © European Central Bank — https://data.ecb.europa.eu
+Source: © European Central Bank - https://data.ecb.europa.eu
 """),
     ]
 
