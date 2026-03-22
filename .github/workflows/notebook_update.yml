@@ -1,0 +1,177 @@
+name: Notebook Update Pipeline
+
+# ---------------------------------------------------------------------------
+# Generates and pushes EDA + modeling notebooks to Kaggle Kernels.
+#
+# Separated from the daily data pipeline so that:
+#   - Data updates are not blocked by notebook failures
+#   - Notebooks can be updated on a different (slower) schedule
+#   - Each pipeline can be re-run independently
+#
+# Schedule: every Monday at 16:00 UTC (01:00 JST Tuesday)
+#           — after the daily data pipeline has run at 15:30 UTC.
+# ---------------------------------------------------------------------------
+
+on:
+  schedule:
+    - cron: "0 16 * * 1"   # every Monday at 16:00 UTC
+
+  workflow_dispatch:
+    inputs:
+      pairs:
+        description: >
+          Comma-separated pair codes (e.g. USDJPY,EURUSD).
+          Leave blank to process all combinations (max 256 per GitHub limit).
+        required: false
+        default: ""
+
+      upload_concurrency:
+        description: "Max parallel notebook pushes (1-10)."
+        required: false
+        default: "3"
+        type: choice
+        options: ["1", "2", "3", "5", "10"]
+
+      dry_run:
+        description: "Set to true to skip Kaggle push (smoke test only)."
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ==========================================================================
+  # Job 1: Fetch — need the ECB raw CSV to resolve pairs
+  # ==========================================================================
+  fetch:
+    name: "Fetch ECB Data"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Fetch all EUR rates from ECB
+        run: python scripts/fetch_ecb.py
+
+      - name: Upload raw data artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ecb-raw-${{ github.run_id }}
+          path: ecb_raw/
+          retention-days: 1
+
+  # ==========================================================================
+  # Job 2: Resolve
+  # ==========================================================================
+  resolve:
+    name: "Resolve Pairs"
+    needs: fetch
+    runs-on: ubuntu-latest
+
+    outputs:
+      pairs_json: ${{ steps.resolve.outputs.pairs_json }}
+      pair_count: ${{ steps.resolve.outputs.pair_count }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Download ECB raw data
+        uses: actions/download-artifact@v4
+        with:
+          name: ecb-raw-${{ github.run_id }}
+          path: ecb_raw/
+
+      - name: Resolve pair list
+        id: resolve
+        run: python scripts/resolve_pairs.py --pairs "${{ github.event.inputs.pairs }}"
+
+      - name: Log resolved pairs
+        run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
+
+  # ==========================================================================
+  # Job 3: Generate + Push Notebooks — one runner per pair
+  # ==========================================================================
+  push-notebooks:
+    name: "${{ matrix.pair }}: Notebooks"
+    needs: resolve
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '3') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      # --- EDA notebook -------------------------------------------------------
+      - name: Generate ${{ matrix.pair }} EDA notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
+
+      - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind eda $DRY_RUN_FLAG
+
+      # --- Modeling notebook --------------------------------------------------
+      - name: Generate ${{ matrix.pair }} modeling notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
+
+      - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind modeling $DRY_RUN_FLAG
+
+      # --- Failure artifact ---------------------------------------------------
+      - name: Save notebooks as artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-nb-${{ matrix.pair }}-${{ github.run_id }}
+          path: notebooks/${{ matrix.pair }}/
+          retention-days: 3
+
+  # ==========================================================================
+  # Job 4: Summary
+  # ==========================================================================
+  summary:
+    name: "Notebook Summary"
+    needs: [resolve, push-notebooks]
+    runs-on: ubuntu-latest
+    if: always()
+
+    steps:
+      - name: Write Markdown summary
+        run: |
+          {
+            echo "## Notebook Update Pipeline — $(date -u +'%Y-%m-%d %H:%M UTC')"
+            echo ""
+            echo "| Job | Result |"
+            echo "|---|---|"
+            echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
+            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-notebooks.result }} |"
+            echo ""
+            echo "**Pairs input**: ${{ github.event.inputs.pairs || '(all)' }}"
+            echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"
+          } >> "$GITHUB_STEP_SUMMARY"
