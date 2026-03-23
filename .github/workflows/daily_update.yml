@@ -158,12 +158,11 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_kaggle.py --pair ${{ matrix.pair }} $DRY_RUN_FLAG
 
-      # --- Failure artifact ---------------------------------------------------
-      - name: Save dataset as artifact on failure
-        if: failure()
+      # --- Save artifact ---------------------------------------------------
+      - name: Save dataset as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: failed-${{ matrix.pair }}-${{ github.run_id }}
+          name: ${{ matrix.pair }}-${{ github.run_id }}
           path: datasets/${{ matrix.pair }}/
           retention-days: 3
 
