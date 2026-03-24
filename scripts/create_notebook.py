@@ -66,7 +66,7 @@ from pathlib import Path
 import sys
 
 # Shared Daily FX utilities
-from daily-fx-utils import (
+from daily_fx_utils import (
     find_data_dir,
     apply_plot_style,
     FEATURE_COLUMNS,
