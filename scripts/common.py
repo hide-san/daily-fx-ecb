@@ -244,3 +244,46 @@ def code(source: str) -> dict:
         "outputs": [],
         "source": source,
     }
+
+
+# ---------------------------------------------------------------------------
+# Kaggle input path resolver
+# ---------------------------------------------------------------------------
+
+def find_kaggle_input_dir(pair: str) -> str:
+    """
+    Return Python source code (as a string) for a code cell that locates
+    <pair>.csv under /kaggle/input regardless of path layout.
+
+    Embed the returned string as a code cell in generated notebooks.
+    """
+    return f'''\
+import glob as _glob
+from pathlib import Path as _Path
+
+def _find_data_dir(pair: str) -> _Path:
+    """
+    Locate <pair>.csv under /kaggle/input regardless of the exact layout.
+
+    Known patterns:
+      /kaggle/input/<slug>/<PAIR>.csv                         (most common)
+      /kaggle/input/datasets/<owner>/<slug>/<PAIR>.csv        (legacy / org)
+      /kaggle/input/<slug>/<PAIR>/<PAIR>.csv                  (nested)
+    """
+    csv_name = f"{{pair}}.csv"
+    fast = _Path(f"/kaggle/input/daily-fx-{{pair.lower()}}/{{csv_name}}")
+    if fast.exists():
+        return fast.parent
+    matches = _glob.glob(f"/kaggle/input/**/{{csv_name}}", recursive=True)
+    if not matches:
+        raise FileNotFoundError(
+            f"{{csv_name}} not found under /kaggle/input/. "
+            "Make sure the dataset is attached to this notebook."
+        )
+    if len(matches) > 1:
+        print(f"[warn] Multiple matches for {{csv_name}}: {{matches}} — using {{matches[0]}}")
+    return _Path(matches[0]).parent
+
+DATA_DIR = _find_data_dir("{pair}")
+print(f"DATA_DIR resolved to: {{DATA_DIR}}")
+'''
