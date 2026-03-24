@@ -23,6 +23,7 @@ from common import (
     notebook_title,
     parse_pair,
     series_search_url,
+    find_kaggle_input_dir,
 )
 
 # ---------------------------------------------------------------------------
@@ -86,8 +87,9 @@ plt.rcParams.update({
     "grid.alpha": 0.3,
 })"""),
 
+        code(find_kaggle_input_dir(pair)),   # ← パス解決セルを分離
+
         code(f"""\
-DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 
