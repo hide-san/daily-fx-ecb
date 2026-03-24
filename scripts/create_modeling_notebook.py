@@ -120,12 +120,12 @@ plt.rcParams.update({
 
         # ── 3. Load data ─────────────────────────────────────────────────
         md("## Load data"),
+        code(find_kaggle_input_dir(pair)),
+
         code(f"""\
-DATA_DIR = Path("/kaggle/input/daily-fx-{pair.lower()}")
 df = pd.read_csv(DATA_DIR / "{pair}.csv", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 
-# Work with log returns — stationary by construction and preferred for modelling
 returns = df["log_return"].dropna().reset_index(drop=True)
 
 print(f"Rows    : {{len(df):,}}")
