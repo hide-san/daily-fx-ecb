@@ -133,34 +133,21 @@ def build_svg(base: str, quote: str) -> str:
                 fill="#20BEFF"
                 text-anchor="middle">{quote}</text>
 
-          <!-- Trust badges (all inside square crop zone x=330..950) -->
-          <rect x="338" y="493" width="136" height="28" rx="5"
+          <!-- Trust badges — 2 badges centred on x=640, inside square crop zone -->
+          <rect x="474" y="493" width="136" height="28" rx="5"
                 fill="#EBF8FF" stroke="#90D8F5" stroke-width="1"/>
-          <text x="406" y="511"
+          <text x="542" y="511"
                 font-family="Georgia, 'Times New Roman', serif"
                 font-size="12" fill="#0097D6"
                 text-anchor="middle">\u25b2 Daily Update</text>
 
-          <rect x="484" y="493" width="156" height="28" rx="5"
+          <rect x="626" y="493" width="156" height="28" rx="5"
                 fill="#EBF8FF" stroke="#90D8F5" stroke-width="1"/>
-          <text x="562" y="511"
+          <text x="704" y="511"
                 font-family="Georgia, 'Times New Roman', serif"
                 font-size="12" fill="#0097D6"
                 text-anchor="middle">{years} years of data</text>
 
-          <rect x="650" y="493" width="120" height="28" rx="5"
-                fill="#EBF8FF" stroke="#90D8F5" stroke-width="1"/>
-          <text x="710" y="511"
-                font-family="Georgia, 'Times New Roman', serif"
-                font-size="12" fill="#0097D6"
-                text-anchor="middle">ML-ready</text>
-
-          <rect x="780" y="493" width="120" height="28" rx="5"
-                fill="#EBF8FF" stroke="#90D8F5" stroke-width="1"/>
-          <text x="840" y="511"
-                font-family="Georgia, 'Times New Roman', serif"
-                font-size="12" fill="#0097D6"
-                text-anchor="middle">ECB Source</text>
 
           <!-- Footer -->
           <text x="640" y="572"
