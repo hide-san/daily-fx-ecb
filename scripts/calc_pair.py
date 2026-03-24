@@ -72,7 +72,7 @@ def compute_pair(wide: pd.DataFrame, base: str, quote: str) -> pd.DataFrame:
     volatility_20d    : 20-day rolling std of daily_return_pct
     year/month/dow    : calendar features for seasonal models
     """
-    EURO_CCY = "ECR"
+    EURO_CCY = "EUR"
     for ccy in (base, quote):
         if ccy == EURO_CCY:
             continue
