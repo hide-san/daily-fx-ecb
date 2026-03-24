@@ -74,8 +74,7 @@ from pathlib import Path
 import sys
 
 # Shared Daily FX utilities
-sys.path.insert(0, "/kaggle/input/daily-fx-utils")
-from fx_utils import (
+from daily-fx-utils (
     find_data_dir,
     apply_plot_style,
     FEATURE_COLUMNS,
