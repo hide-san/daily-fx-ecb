@@ -1,8 +1,4 @@
-"""
-tests/test_calc_pair.py
-========================
-Unit tests for scripts/calc_pair.py
-"""
+"""tests/test_calc_pair.py"""
 
 import json
 import sys
@@ -17,24 +13,12 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from calc_pair import compute_pair, load_eur_rates, write_dataset_metadata
 
 
-# ---------------------------------------------------------------------------
-# Fixtures
-# ---------------------------------------------------------------------------
-
 def make_wide(data: dict, dates: list[str]) -> pd.DataFrame:
     return pd.DataFrame(data, index=pd.to_datetime(dates))
 
 
 @pytest.fixture()
 def simple_wide() -> pd.DataFrame:
-    """
-    Five days with hand-crafted USD / JPY / GBP rates vs EUR.
-
-    USD: 1.0, 1.1, 1.2, 1.1, 1.0
-    JPY: 100, 110, 120, 110, 100
-
-    USD/JPY = JPY/USD = 100 flat — easy to assert.
-    """
     return make_wide(
         data={
             "USD": [1.0, 1.1, 1.2, 1.1, 1.0],
@@ -45,10 +29,6 @@ def simple_wide() -> pd.DataFrame:
                "2024-01-04", "2024-01-05"],
     )
 
-
-# ---------------------------------------------------------------------------
-# load_eur_rates
-# ---------------------------------------------------------------------------
 
 class TestLoadEurRates:
     def test_returns_wide_dataframe(self, tmp_path: Path) -> None:
@@ -76,10 +56,6 @@ class TestLoadEurRates:
         wide = load_eur_rates(csv)
         assert list(wide.index) == sorted(wide.index)
 
-
-# ---------------------------------------------------------------------------
-# compute_pair
-# ---------------------------------------------------------------------------
 
 class TestComputePair:
     def test_required_columns_present(self, simple_wide: pd.DataFrame) -> None:
@@ -120,14 +96,9 @@ class TestComputePair:
         assert list(df["date"]) == sorted(df["date"])
 
 
-# ---------------------------------------------------------------------------
-# write_dataset_metadata
-# ---------------------------------------------------------------------------
-
 class TestWriteDatasetMetadata:
     def test_creates_json_file(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         df = compute_pair(simple_wide, "USD", "JPY")
-        # Temporarily redirect output to tmp_path
         import common
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
@@ -136,9 +107,7 @@ class TestWriteDatasetMetadata:
         common.DATASETS_ROOT = original
         assert (tmp_path / "USDJPY" / "dataset-metadata.json").exists()
 
-    def test_title_follows_naming_convention(
-        self, tmp_path: Path, simple_wide: pd.DataFrame
-    ) -> None:
+    def test_title_follows_naming_convention(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
@@ -146,13 +115,11 @@ class TestWriteDatasetMetadata:
         df = compute_pair(simple_wide, "USD", "JPY")
         write_dataset_metadata("USDJPY", "USD", "JPY", df)
         common.DATASETS_ROOT = original
-
         with open(tmp_path / "USDJPY" / "dataset-metadata.json") as fh:
             meta = json.load(fh)
         assert meta["title"] == "Daily FX: USDJPY"
 
     def test_no_is_private_key(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
-        """Visibility must be set manually in the Kaggle GUI."""
         import common
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
@@ -160,7 +127,6 @@ class TestWriteDatasetMetadata:
         df = compute_pair(simple_wide, "USD", "JPY")
         write_dataset_metadata("USDJPY", "USD", "JPY", df)
         common.DATASETS_ROOT = original
-
         with open(tmp_path / "USDJPY" / "dataset-metadata.json") as fh:
             meta = json.load(fh)
         assert "isPrivate" not in meta

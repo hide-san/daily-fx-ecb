@@ -1,34 +1,7 @@
 name: Daily ECB FX Pair Pipeline
 
-# ---------------------------------------------------------------------------
-# Pipeline overview
-#
-#  Job 1  [fetch]
-#    Single runner. Fetches all EUR rates from the ECB API (with retry)
-#    and saves the result as an artifact shared with every Job 3 runner.
-#
-#  Job 2  [resolve]
-#    Single runner. Turns the pairs input into a JSON array written to
-#    GITHUB_OUTPUT, consumed by Job 3 as a dynamic matrix.
-#
-#  Job 3  [calc-and-upload]  — dynamic matrix, one runner per pair
-#    Each runner executes in sequence:
-#      1. calc_pair.py        compute cross rate + ML features
-#      2. generate_cover.py   create 1280x640 PNG cover image
-#      3. validate_pair.py    data quality gate (blocks on failure)
-#      4. upload_kaggle.py    upload dataset to Kaggle
-#
-#  Job 4  [summary]
-#    Writes a Markdown result table to GITHUB_STEP_SUMMARY
-#    and appends one line to CHANGELOG.md on success.
-#
-# Note: Notebook updates are handled separately by notebook_update.yml.
-# ---------------------------------------------------------------------------
-
 on:
   schedule:
-    # Run every weekday at 15:30 UTC (00:30 JST next day).
-    # ECB publishes rates at ~15:00 UTC, so this gives a 30-minute buffer.
     - cron: "30 15 * * 1-5"
 
   workflow_dispatch:
@@ -41,7 +14,7 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel Kaggle uploads (1-20). Lower = safer for API rate limits."
+        description: "Max parallel Kaggle uploads (1-20)."
         required: false
         default: "5"
         type: choice
@@ -60,20 +33,14 @@ concurrency:
 
 jobs:
 
-  # ==========================================================================
-  # Job 1: Fetch
-  # ==========================================================================
   fetch:
     name: "Fetch ECB Data"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
-
       - name: Fetch all EUR rates from ECB
         run: python scripts/fetch_ecb.py
-
       - name: Upload raw data artifact
         uses: actions/upload-artifact@v4
         with:
@@ -81,74 +48,52 @@ jobs:
           path: ecb_raw/
           retention-days: 1
 
-  # ==========================================================================
-  # Job 2: Resolve
-  # ==========================================================================
   resolve:
     name: "Resolve Pairs"
     needs: fetch
     runs-on: ubuntu-latest
-
     outputs:
       pairs_json: ${{ steps.resolve.outputs.pairs_json }}
       pair_count: ${{ steps.resolve.outputs.pair_count }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
-
       - name: Download ECB raw data
         uses: actions/download-artifact@v4
         with:
           name: ecb-raw-${{ github.run_id }}
           path: ecb_raw/
-
       - name: Resolve pair list
         id: resolve
         run: python scripts/resolve_pairs.py --pairs "${{ github.event.inputs.pairs }}"
-
       - name: Log resolved pairs
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
-  # ==========================================================================
-  # Job 3: Calc + Upload
-  # ==========================================================================
   calc-and-upload:
-    name: "${{ matrix.pair }}: Calc → Upload"
+    name: "${{ matrix.pair }}: Calc -> Upload"
     needs: resolve
     runs-on: ubuntu-latest
-
     strategy:
       fail-fast: false
       max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '5') }}
       matrix:
         pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
-
       - name: Download ECB raw data
         uses: actions/download-artifact@v4
         with:
           name: ecb-raw-${{ github.run_id }}
           path: ecb_raw/
-
-      # --- Calc ---------------------------------------------------------------
       - name: Calculate ${{ matrix.pair }} time series
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/calc_pair.py --pair ${{ matrix.pair }}
-
-      # --- Cover image --------------------------------------------------------
       - name: Generate ${{ matrix.pair }} cover image
         run: python scripts/generate_cover.py --pair ${{ matrix.pair }}
-
-      # --- Validation gate ----------------------------------------------------
       - name: Validate ${{ matrix.pair }} data quality
         run: python scripts/validate_pair.py --pair ${{ matrix.pair }}
-
-      # --- Dataset upload -----------------------------------------------------
       - name: Upload ${{ matrix.pair }} dataset to Kaggle
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
@@ -157,8 +102,6 @@ jobs:
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_kaggle.py --pair ${{ matrix.pair }} $DRY_RUN_FLAG
-
-      # --- Save artifact ---------------------------------------------------
       - name: Save dataset as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -166,36 +109,28 @@ jobs:
           path: datasets/${{ matrix.pair }}/
           retention-days: 3
 
-  # ==========================================================================
-  # Job 4: Summary + CHANGELOG
-  # ==========================================================================
   summary:
     name: "Pipeline Summary"
     needs: [fetch, resolve, calc-and-upload]
     runs-on: ubuntu-latest
     if: always()
-
     steps:
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-
       - name: Write Markdown summary
         run: |
           {
-            echo "## Daily FX Pipeline — $(date -u +'%Y-%m-%d %H:%M UTC')"
+            echo "## Daily FX Pipeline -- $(date -u +'%Y-%m-%d %H:%M UTC')"
             echo ""
             echo "| Job | Result |"
             echo "|---|---|"
             echo "| Fetch ECB data | ${{ needs.fetch.result }} |"
             echo "| Resolve pairs  | ${{ needs.resolve.result }} |"
-            echo "| Calc + Upload (${{ needs.resolve.outputs.pair_count }} pairs, x${{ github.event.inputs.upload_concurrency || '5' }} parallel) | ${{ needs.calc-and-upload.result }} |"
+            echo "| Calc + Upload (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.calc-and-upload.result }} |"
             echo ""
-            echo "**Pairs input**       : ${{ github.event.inputs.pairs || '(all)' }}"
-            echo "**Upload concurrency**: ${{ github.event.inputs.upload_concurrency || '5' }}"
-            echo "**Dry run**           : ${{ github.event.inputs.dry_run || 'false' }}"
+            echo "**Dry run**: ${{ github.event.inputs.dry_run || 'false' }}"
           } >> "$GITHUB_STEP_SUMMARY"
-
       - name: Update CHANGELOG.md
         if: |
           needs.calc-and-upload.result == 'success' &&
@@ -203,15 +138,14 @@ jobs:
         run: |
           DATE=$(date -u +'%Y-%m-%d')
           PAIRS="${{ needs.resolve.outputs.pair_count }}"
-          LINE="## ${DATE} — Daily update (${PAIRS} pairs)"
+          LINE="## ${DATE} -- Daily update (${PAIRS} pairs)"
           if grep -qF "## ${DATE}" CHANGELOG.md; then
-            echo "CHANGELOG already has an entry for ${DATE} — skipping."
+            echo "CHANGELOG already has an entry for ${DATE} -- skipping."
           else
-            sed -i "1a\\\\n${LINE}" CHANGELOG.md
+            sed -i "1a\\\n${LINE}" CHANGELOG.md
             git config user.name  "github-actions[bot]"
             git config user.email "github-actions[bot]@users.noreply.github.com"
             git add CHANGELOG.md
             git commit -m "chore: daily update ${DATE} (${PAIRS} pairs)"
             git push
-            echo "CHANGELOG updated and pushed."
           fi

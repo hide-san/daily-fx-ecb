@@ -1,14 +1,5 @@
 name: CI
 
-# ---------------------------------------------------------------------------
-# Runs on every push and pull request to main.
-# Three jobs run in parallel — all must pass before merging.
-#
-#   lint      — ruff check (style) + ruff format (formatting)
-#   typecheck — mypy strict mode
-#   test      — pytest with coverage (threshold: 80%)
-# ---------------------------------------------------------------------------
-
 on:
   push:
     branches: ["main"]
@@ -33,65 +24,44 @@ concurrency:
 
 jobs:
 
-  # ==========================================================================
-  # Lint
-  # ==========================================================================
   lint:
     name: "Lint (ruff)"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-
       - name: Install ruff
         run: pip install ruff
-
       - name: Check style and common issues
         run: ruff check scripts/ tests/
-
       - name: Check formatting
         run: ruff format --check scripts/ tests/
 
-  # ==========================================================================
-  # Type check
-  # ==========================================================================
   typecheck:
     name: "Type Check (mypy)"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: pip
-
       - name: Install dependencies
         run: pip install mypy pandas-stubs numpy pandas requests tenacity
-
       - name: Run mypy
         run: mypy scripts/
 
-  # ==========================================================================
-  # Unit tests
-  # ==========================================================================
   test:
     name: "Unit Tests (pytest)"
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
-
       - name: Install dev dependencies
         run: pip install pytest pytest-cov pytest-json-report
-
       - name: Run tests with coverage
         run: |
           pytest tests/ \
@@ -101,14 +71,11 @@ jobs:
             --cov-fail-under=80 \
             --json-report \
             --json-report-file=test-report.json
-
       - name: Write test summary
         if: always()
         run: |
           python3 - << 'EOF'
           import json, os
-
-          # --- test results ---
           report   = json.load(open("test-report.json"))
           summary  = report["summary"]
           passed   = summary.get("passed", 0)
@@ -116,19 +83,11 @@ jobs:
           errors   = summary.get("error",  0)
           total    = summary.get("total",  0)
           duration = report.get("duration", 0)
-          status   = "✅ passed" if failed == 0 and errors == 0 else "❌ failed"
-
-          # --- coverage ---
+          status   = "passed" if failed == 0 and errors == 0 else "failed"
           cov      = json.load(open("coverage.json"))
           pct      = round(cov["totals"]["percent_covered"], 1)
-          cov_icon = "✅" if pct >= 80 else "⚠️"
-
-          # --- failed test details ---
-          failures = [
-              t for t in report.get("tests", [])
-              if t["outcome"] in ("failed", "error")
-          ]
-
+          cov_icon = "" if pct >= 80 else ""
+          failures = [t for t in report.get("tests", []) if t["outcome"] in ("failed", "error")]
           with open(os.environ["GITHUB_STEP_SUMMARY"], "a") as f:
               f.write("## Test Results\n\n")
               f.write(f"| | |\n|---|---|\n")
@@ -137,17 +96,14 @@ jobs:
               f.write(f"| Failed    | {failed + errors} |\n")
               f.write(f"| Duration  | {duration:.1f}s |\n")
               f.write(f"| Coverage  | {cov_icon} {pct}% |\n")
-
               if failures:
                   f.write("\n### Failed tests\n\n")
                   for t in failures:
                       f.write(f"- `{t['nodeid']}`\n")
                       if t.get("call", {}).get("longrepr"):
-                          # Show only the last line of the traceback
                           last = t["call"]["longrepr"].strip().splitlines()[-1]
                           f.write(f"  ```\n  {last}\n  ```\n")
           EOF
-
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         if: always()

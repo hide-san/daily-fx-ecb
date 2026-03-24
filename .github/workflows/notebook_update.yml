@@ -3,10 +3,11 @@ name: Notebook Update Pipeline
 # ---------------------------------------------------------------------------
 # Generates and pushes EDA + modeling notebooks to Kaggle Kernels.
 #
-# Notebooks read data from Kaggle datasets (not from ECB raw data),
-# so no ECB fetch is needed.  Pairs are resolved from pairs.txt directly.
-#
-# Schedule: every Monday at 16:00 UTC (01:00 JST Tuesday)
+# Job order:
+#   resolve      -- resolve pair list
+#   push-utils   -- generate & push shared fx_utils.py (once, not per-pair)
+#   push-notebooks -- generate & push EDA + modeling notebooks (per pair)
+#   summary      -- write result table
 # ---------------------------------------------------------------------------
 
 on:
@@ -43,7 +44,7 @@ concurrency:
 jobs:
 
   # ==========================================================================
-  # Job 1: Resolve — read pairs.txt directly, no ECB fetch needed
+  # Job 1: Resolve
   # ==========================================================================
   resolve:
     name: "Resolve Pairs"
@@ -65,11 +66,37 @@ jobs:
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
   # ==========================================================================
-  # Job 2: Generate + Push Notebooks — one runner per pair
+  # Job 2: Push shared utils script (once, not per-pair)
+  # ==========================================================================
+  push-utils:
+    name: "Push Utils Script"
+    needs: resolve
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Generate utils script
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: python scripts/create_utils_script.py
+
+      - name: Push utils script to Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --kind utils $DRY_RUN_FLAG
+
+  # ==========================================================================
+  # Job 3: Generate + Push Notebooks (per pair, after utils is ready)
   # ==========================================================================
   push-notebooks:
     name: "${{ matrix.pair }}: Notebooks"
-    needs: resolve
+    needs: [resolve, push-utils]
     runs-on: ubuntu-latest
 
     strategy:
@@ -122,11 +149,11 @@ jobs:
           retention-days: 3
 
   # ==========================================================================
-  # Job 3: Summary
+  # Job 4: Summary
   # ==========================================================================
   summary:
     name: "Notebook Summary"
-    needs: [resolve, push-notebooks]
+    needs: [resolve, push-utils, push-notebooks]
     runs-on: ubuntu-latest
     if: always()
 
@@ -134,11 +161,12 @@ jobs:
       - name: Write Markdown summary
         run: |
           {
-            echo "## Notebook Update Pipeline — $(date -u +'%Y-%m-%d %H:%M UTC')"
+            echo "## Notebook Update Pipeline -- $(date -u +'%Y-%m-%d %H:%M UTC')"
             echo ""
             echo "| Job | Result |"
             echo "|---|---|"
             echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
+            echo "| Push utils      | ${{ needs.push-utils.result }} |"
             echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-notebooks.result }} |"
             echo ""
             echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"

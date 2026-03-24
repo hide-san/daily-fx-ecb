@@ -1,23 +1,14 @@
 """
 scripts/upload_kaggle.py  --pair <BASEQUOTE>
 =============================================
-Job 3 (upload step) — Upload one pair's dataset to Kaggle.
-
-Behaviour
----------
-1. Try create — if the dataset is new it gets created.
-2. If the dataset already exists, fall back to version update.
-
-Note on Kaggle CLI 2.0
------------------------
-Exit code 0 is returned even when stdout contains an error message.
-We inspect stdout to detect real failures.
+Job 3 (upload step) -- Upload one pair's dataset to Kaggle.
 """
 
 import argparse
 import shutil
 import sys
 import tempfile
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -27,20 +18,8 @@ from common import (
     run_command,
 )
 
-# ---------------------------------------------------------------------------
-# Upload
-# ---------------------------------------------------------------------------
 
 def upload_dataset(pair: str, dry_run: bool) -> bool:
-    """
-    Upload datasets/<pair>/ to Kaggle.
-
-    Only the CSV and dataset-metadata.json are uploaded as data files.
-    {pair}.png is excluded from the upload directory to prevent it from
-    appearing as a data file in the Kaggle dataset file list.
-
-    Returns True on success, False on failure.
-    """
     dataset_dir  = DATASETS_ROOT / pair
     version_note = f"Daily update: {datetime.utcnow().strftime('%Y-%m-%d')}"
 
@@ -52,15 +31,12 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
         print(f"ERROR: {dataset_dir} does not exist.", file=sys.stderr)
         return False
 
-    # Stage only the data files (exclude {pair}.png) in a temp directory.
-    # This prevents {pair}.png from appearing as a downloadable data file.
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        shutil.copy(dataset_dir / f"{pair}.csv",             tmp_path / f"{pair}.csv")
-        shutil.copy(dataset_dir / "dataset-metadata.json",  tmp_path / "dataset-metadata.json")
+        shutil.copy(dataset_dir / f"{pair}.csv",            tmp_path / f"{pair}.csv")
+        shutil.copy(dataset_dir / "dataset-metadata.json", tmp_path / "dataset-metadata.json")
 
-        # --- Try create (works for first-time upload) -----------------------
-        result    = run_command([
+        result = run_command([
             "kaggle", "datasets", "create",
             "--path",     str(tmp_path),
             "--dir-mode", "zip",
@@ -72,8 +48,7 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
             print(f"{pair}: dataset created successfully.")
             return True
 
-        # --- Fall back to version update (dataset already exists) -----------
-        print(f"{pair}: dataset exists — adding new version ...")
+        print(f"{pair}: dataset exists -- adding new version ...")
         result     = run_command([
             "kaggle", "datasets", "version",
             "--path",     str(tmp_path),
@@ -91,26 +66,48 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
     return False
 
 
-# ---------------------------------------------------------------------------
-# Entry point
-# ---------------------------------------------------------------------------
+def wait_until_ready(
+    pair: str,
+    dry_run: bool,
+    poll_sec: int = 30,
+    timeout_sec: int = 600,
+) -> bool:
+    if dry_run:
+        print(f"[dry-run] Skipping wait for {pair}.")
+        return True
+
+    from common import dataset_slug
+    slug  = dataset_slug(pair)
+    start = time.monotonic()
+
+    while True:
+        result = run_command(["kaggle", "datasets", "status", slug])
+        output = (result.stdout + result.stderr).lower()
+
+        if "ready" in output:
+            print(f"{pair}: dataset is ready.")
+            return True
+        if "error" in output:
+            print(f"ERROR: dataset processing failed for {pair}.", file=sys.stderr)
+            return False
+        if time.monotonic() - start > timeout_sec:
+            print(f"ERROR: timed out waiting for {pair} to become ready.", file=sys.stderr)
+            return False
+
+        print(f"{pair}: not ready yet -- waiting {poll_sec}s ...")
+        time.sleep(poll_sec)
+
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Upload a currency pair dataset to Kaggle."
-    )
-    parser.add_argument("--pair",    required=True,
-                        help="Pair code, e.g. USDJPY")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Skip upload — useful for testing.")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--pair",    required=True)
+    parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     pair = args.pair.upper()
 
     success = upload_dataset(pair, dry_run=args.dry_run)
-
-    status = "uploaded" if success else "upload FAILED"
+    status  = "uploaded" if success else "upload FAILED"
     append_github_summary(f"| {pair} dataset | {status} |\n")
-
     sys.exit(0 if success else 1)
 
 

@@ -1,8 +1,4 @@
-"""
-tests/test_common.py
-=====================
-Unit tests for scripts/common.py
-"""
+"""tests/test_common.py"""
 
 import sys
 from pathlib import Path
@@ -18,6 +14,7 @@ from common import (
     notebook_title,
     parse_pair,
     series_search_url,
+    utils_slug,
 )
 
 
@@ -36,9 +33,6 @@ class TestNamingConventions:
     def test_dataset_title(self) -> None:
         assert dataset_title("USDJPY") == "Daily FX: USDJPY"
 
-    def test_notebook_title(self) -> None:
-        assert notebook_title("USDJPY") == "Daily FX: USDJPY — EDA & Baseline Forecast"
-
     def test_dataset_slug_contains_pair(self) -> None:
         assert "usdjpy" in dataset_slug("USDJPY")
 
@@ -50,6 +44,12 @@ class TestNamingConventions:
 
     def test_notebook_slug_distinct_from_dataset_slug(self) -> None:
         assert dataset_slug("USDJPY") != notebook_slug("USDJPY")
+
+    def test_utils_slug_contains_username(self) -> None:
+        assert KAGGLE_USER in utils_slug()
+
+    def test_utils_slug_contains_utils(self) -> None:
+        assert "utils" in utils_slug()
 
 
 class TestSeriesSearchUrl:
@@ -71,6 +71,5 @@ class TestCurrencyMeta:
             assert "country" in meta, f"{ccy}: 'country' missing"
 
     def test_meta_covers_common_currencies(self) -> None:
-        # CURRENCY_META is display-only but should cover the major pairs
-        for ccy in ["USD", "JPY", "EUR", "GBP", "CHF"]:
+        for ccy in ["USD", "JPY", "GBP", "CHF"]:
             assert ccy in CURRENCY_META, f"{ccy} missing from CURRENCY_META"

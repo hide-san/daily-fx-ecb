@@ -8,12 +8,12 @@ __pycache__/
 .coverage
 htmlcov/
 
-# Pipeline outputs — generated at runtime, never committed
+# Pipeline outputs -- generated at runtime, never committed
 ecb_raw/
 datasets/
 notebooks/
 
-# Kaggle credentials — never commit
+# Kaggle credentials -- never commit
 .kaggle/
 kaggle.json
 

@@ -1,8 +1,4 @@
-"""
-tests/test_validate_pair.py
-============================
-Unit tests for scripts/validate_pair.py
-"""
+"""tests/test_validate_pair.py"""
 
 import sys
 from datetime import date, timedelta
@@ -24,27 +20,12 @@ from validate_pair import (
 )
 
 
-# ---------------------------------------------------------------------------
-# Fixture helper
-# ---------------------------------------------------------------------------
-
 def make_df(
     n_rows: int = 2000,
     latest_offset_days: int = 1,
     spike_index: int | None = None,
     gap_after_index: int | None = None,
 ) -> pd.DataFrame:
-    """
-    Build a synthetic daily DataFrame that passes all checks by default.
-
-    Parameters
-    ----------
-    n_rows             : total number of rows
-    latest_offset_days : how many calendar days ago the latest date is
-    spike_index        : inject a +30% spike at this row index
-    gap_after_index    : insert an 8-day gap after this row index
-                         (within the last 30 days)
-    """
     latest = date.today() - timedelta(days=latest_offset_days)
     dates  = pd.date_range(end=latest, periods=n_rows, freq="B")
     rates  = np.full(n_rows, 150.0)
@@ -66,10 +47,6 @@ def make_df(
     return df
 
 
-# ---------------------------------------------------------------------------
-# check_freshness
-# ---------------------------------------------------------------------------
-
 class TestCheckFreshness:
     def test_passes_when_yesterday(self) -> None:
         assert check_freshness(make_df(latest_offset_days=1)) == []
@@ -80,10 +57,6 @@ class TestCheckFreshness:
     def test_fails_when_too_stale(self) -> None:
         assert len(check_freshness(make_df(latest_offset_days=6))) == 1
 
-
-# ---------------------------------------------------------------------------
-# check_minimum_rows
-# ---------------------------------------------------------------------------
 
 class TestCheckMinimumRows:
     def test_passes_with_enough_rows(self) -> None:
@@ -96,10 +69,6 @@ class TestCheckMinimumRows:
         assert check_minimum_rows(make_df(n_rows=1000)) == []
 
 
-# ---------------------------------------------------------------------------
-# check_no_unexpected_gap
-# ---------------------------------------------------------------------------
-
 class TestCheckNoUnexpectedGap:
     def test_passes_clean_series(self) -> None:
         assert check_no_unexpected_gap(make_df()) == []
@@ -108,10 +77,6 @@ class TestCheckNoUnexpectedGap:
         df = make_df(n_rows=2000, gap_after_index=1990)
         assert len(check_no_unexpected_gap(df)) == 1
 
-
-# ---------------------------------------------------------------------------
-# check_spike_guard
-# ---------------------------------------------------------------------------
 
 class TestCheckSpikeGuard:
     def test_passes_no_spikes(self) -> None:
@@ -131,10 +96,6 @@ class TestCheckSpikeGuard:
         assert len(check_spike_guard(df)) == 1
 
 
-# ---------------------------------------------------------------------------
-# check_no_all_null_columns
-# ---------------------------------------------------------------------------
-
 class TestCheckNoAllNullColumns:
     def test_passes_valid_data(self) -> None:
         assert check_no_all_null_columns(make_df()) == []
@@ -145,5 +106,4 @@ class TestCheckNoAllNullColumns:
         assert any("rate" in e for e in check_no_all_null_columns(df))
 
     def test_partial_nans_are_allowed(self) -> None:
-        # First row of daily_return_pct is always NaN after pct_change
         assert check_no_all_null_columns(make_df()) == []

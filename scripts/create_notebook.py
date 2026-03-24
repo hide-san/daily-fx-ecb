@@ -1,7 +1,7 @@
 """
 scripts/create_notebook.py  --pair <BASEQUOTE>
 ===============================================
-Job 3 (notebook step) — Generate a Kaggle-ready EDA notebook for one pair.
+Job 3 (notebook step) -- Generate a Kaggle-ready EDA notebook for one pair.
 
 Output
 ------
@@ -23,7 +23,7 @@ from common import (
     notebook_title,
     parse_pair,
     series_search_url,
-    find_kaggle_input_dir,
+    utils_slug,
 )
 
 # ---------------------------------------------------------------------------
@@ -31,21 +31,6 @@ from common import (
 # ---------------------------------------------------------------------------
 
 def build_notebook(pair: str, base: str, quote: str) -> dict:
-    """
-    Return a complete nbformat v4 notebook as a plain Python dict.
-
-    Sections:
-      0. Title + dataset link
-      1. Series navigation (top — drives discovery of other pairs)
-      2. Imports
-      3. Load data
-      4. Time-series plot
-      5. Moving averages
-      6. Return distribution
-      7. Rolling volatility
-      8. Rolling-mean forecast baseline
-      9. Next steps + source credit
-    """
     slug     = dataset_slug(pair)
     csv_file = f"{pair}.csv"
 
@@ -55,7 +40,7 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
 # {notebook_title(pair)}
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})
-**Source**: European Central Bank (ECB) — free reuse with attribution
+**Source**: European Central Bank (ECB) -- free reuse with attribution
 **Pair**: {base} / {quote}
 """),
 
@@ -78,30 +63,37 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 from pathlib import Path
+import sys
 
-plt.rcParams.update({
-    "figure.dpi": 120,
-    "axes.spines.top": False,
-    "axes.spines.right": False,
-    "axes.grid": True,
-    "grid.alpha": 0.3,
-})"""),
+# Shared Daily FX utilities
+sys.path.insert(0, "/kaggle/input/daily-fx-utils")
+from fx_utils import (
+    find_data_dir,
+    apply_plot_style,
+    FEATURE_COLUMNS,
+    COLOR_RATE,
+    COLOR_SIGNAL,
+    COLOR_MUTED,
+    get_logger,
+    print_summary,
+)
 
-        code(find_kaggle_input_dir(pair)),
+apply_plot_style()
+log = get_logger()"""),
 
         code(f"""\
+DATA_DIR = find_data_dir("{pair}")
+log.info("DATA_DIR resolved to: %s", DATA_DIR)
+
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
-
-print(f"Rows      : {{len(df):,}}")
-print(f"Period    : {{df['date'].min().date()}} → {{df['date'].max().date()}}")
-print(f"Columns   : {{list(df.columns)}}")
+print_summary("{pair}", df)
 df.tail()"""),
 
         md("## Time series"),
         code(f"""\
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(df["date"], df["rate"], linewidth=0.8, color="#185FA5")
+ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
 ax.set_title("{pair} spot rate (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.xaxis.set_major_locator(mdates.YearLocator(5))
@@ -112,9 +104,9 @@ plt.show()"""),
         md("## Moving averages"),
         code("""\
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(df["date"], df["rate"],   linewidth=0.6, color="#B4B2A9", label="spot")
-ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color="#185FA5", label="21-day MA")
-ax.plot(df["date"], df["ma_63d"], linewidth=1.4, color="#E8593C", label="63-day MA")
+ax.plot(df["date"], df["rate"],   linewidth=0.6, color=COLOR_MUTED,  label="spot")
+ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color=COLOR_RATE,   label="21-day MA")
+ax.plot(df["date"], df["ma_63d"], linewidth=1.4, color=COLOR_SIGNAL, label="63-day MA")
 ax.set_title("Spot rate with moving averages")
 ax.legend()
 plt.tight_layout()
@@ -125,13 +117,13 @@ plt.show()"""),
 returns = df["daily_return_pct"].dropna()
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-axes[0].hist(returns, bins=80, color="#185FA5", edgecolor="white", linewidth=0.3)
+axes[0].hist(returns, bins=80, color=COLOR_RATE, edgecolor="white", linewidth=0.3)
 axes[0].set_title("Histogram of daily returns (%)")
 axes[0].set_xlabel("Return (%)")
 
-axes[1].plot(df["date"], df["log_return"], linewidth=0.5, color="#185FA5", alpha=0.7)
+axes[1].plot(df["date"], df["log_return"], linewidth=0.5, color=COLOR_RATE, alpha=0.7)
 axes[1].set_title("Log returns over time")
-axes[1].axhline(0, color="#E8593C", linewidth=0.8, linestyle="--")
+axes[1].axhline(0, color=COLOR_SIGNAL, linewidth=0.8, linestyle="--")
 
 plt.tight_layout()
 plt.show()
@@ -144,8 +136,8 @@ print(f"Kurt : {returns.kurtosis():.4f}")"""),
         md("## Rolling volatility (20-day)"),
         code("""\
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color="#E8593C")
-ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color="#E8593C")
+ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=COLOR_SIGNAL)
+ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color=COLOR_SIGNAL)
 ax.set_title("20-day rolling volatility of daily returns")
 ax.set_ylabel("Std of daily return (%)")
 plt.tight_layout()
@@ -154,7 +146,7 @@ plt.show()"""),
         md("""\
 ## Rolling-mean forecast baseline
 
-Predict tomorrow's rate as the 21-day rolling mean.
+Predict tomorrow\'s rate as the 21-day rolling mean.
 This establishes a benchmark RMSE to beat with more sophisticated models.
 """),
         code("""\
@@ -170,8 +162,8 @@ print(f"Baseline RMSE : {rmse:.6f}")
 print(f"Baseline MAE  : {mae:.6f}")
 
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(test["date"], test["rate"],  linewidth=1.0, color="#185FA5", label="actual")
-ax.plot(test["date"], test_pred,     linewidth=1.0, color="#E8593C",
+ax.plot(test["date"], test["rate"],  linewidth=1.0, color=COLOR_RATE,   label="actual")
+ax.plot(test["date"], test_pred,     linewidth=1.0, color=COLOR_SIGNAL,
         linestyle="--", label="rolling-mean forecast")
 ax.set_title("Actual vs rolling-mean forecast (last 2 years)")
 ax.legend()
@@ -181,15 +173,15 @@ plt.show()"""),
         md("""\
 ## Next steps
 
-- **ARIMA / SARIMA** — capture autocorrelation in the return series
-- **GARCH** — model time-varying volatility
-- **LightGBM / XGBoost** — use `ma_*`, `volatility_20d`, and calendar features
-- **Multivariate** — combine several pairs from other ECB datasets
+- **ARIMA / SARIMA** -- capture autocorrelation in the return series
+- **GARCH** -- model time-varying volatility
+- **LightGBM / XGBoost** -- use `ma_*`, `volatility_20d`, and calendar features
+- **Multivariate** -- combine several pairs from other ECB datasets
 
 ---
 
 Dataset updated every business day.
-Source: © European Central Bank — https://data.ecb.europa.eu
+Source: \u00a9 European Central Bank -- https://data.ecb.europa.eu
 """),
     ]
 
@@ -207,12 +199,12 @@ Source: © European Central Bank — https://data.ecb.europa.eu
         "cells": cells,
     }
 
+
 # ---------------------------------------------------------------------------
 # Kaggle kernel metadata
 # ---------------------------------------------------------------------------
 
 def write_kernel_metadata(pair: str) -> None:
-    """Write kernel-metadata.json linking the notebook to its dataset."""
     metadata = {
         "id":                  notebook_slug(pair),
         "title":               notebook_title(pair),
@@ -225,12 +217,12 @@ def write_kernel_metadata(pair: str) -> None:
         "keywords":            ["finance", "economics"],
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [],
+        "kernel_sources":      [utils_slug()],
     }
-
     output_dir = notebook_output_dir(pair)
     with open(output_dir / "kernel-metadata.json", "w", encoding="utf-8") as fh:
         json.dump(metadata, fh, indent=2)
+
 
 # ---------------------------------------------------------------------------
 # Entry point
@@ -255,7 +247,6 @@ def main() -> None:
 
     print(f"Notebook : {nb_path}")
     print(f"Metadata : {output_dir / 'kernel-metadata.json'}")
-
     append_github_summary(f"| {pair} notebook | generated |\n")
 
 
