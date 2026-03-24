@@ -281,7 +281,7 @@ def write_kernel_metadata(pair: str) -> None:
         "keywords":            ["finance", "economics"],
         "dataset_sources":     [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [notebook_slug(pair), utils_slug()],
+        "kernel_sources":      [utils_slug()],
     }
     output_dir = notebook_output_dir(pair)
     with open(output_dir / "kernel-metadata-modeling.json", "w", encoding="utf-8") as fh:
