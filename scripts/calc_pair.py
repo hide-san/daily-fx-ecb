@@ -72,10 +72,17 @@ def compute_pair(wide: pd.DataFrame, base: str, quote: str) -> pd.DataFrame:
     volatility_20d    : 20-day rolling std of daily_return_pct
     year/month/dow    : calendar features for seasonal models
     """
+    EURO_CCY = "ECR"
     for ccy in (base, quote):
+        if ccy == EURO_CCY:
+            continue
         if ccy not in wide.columns:
             raise ValueError(f"Currency '{ccy}' not found in ECB data.")
-
+    
+    if base == EURO_CCY:
+        wide = wide.copy()
+        wide[base] = 1
+        
     df = (wide[quote] / wide[base]).dropna().rename("rate").reset_index()
     df.columns = ["date", "rate"]
 
