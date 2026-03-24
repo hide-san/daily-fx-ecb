@@ -21,6 +21,7 @@ from common import (
     modeling_notebook_slug,
     modeling_notebook_title,
     notebook_output_dir,
+    notebook_slug,
     notebook_title,
     parse_pair,
     series_search_url,
