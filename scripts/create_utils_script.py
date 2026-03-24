@@ -196,7 +196,7 @@ def write_kernel_metadata() -> None:
         "code_file":           "fx_utils.py",
         "language":            "python",
         "kernel_type":         "script",
-        "util-script"          True,
+        "util-script":         True,
         "is_private":          True,
         "enable_gpu":          False,
         "enable_internet":     False,
