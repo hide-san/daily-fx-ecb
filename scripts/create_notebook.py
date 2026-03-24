@@ -87,7 +87,7 @@ plt.rcParams.update({
     "grid.alpha": 0.3,
 })"""),
 
-        code(find_kaggle_input_dir(pair)),   # ← パス解決セルを分離
+        code(find_kaggle_input_dir(pair)),
 
         code(f"""\
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
