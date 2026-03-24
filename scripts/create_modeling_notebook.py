@@ -34,6 +34,7 @@ from common import (
     notebook_title,
     parse_pair,
     series_search_url,
+    find_kaggle_input_dir,
 )
 
 # ---------------------------------------------------------------------------
