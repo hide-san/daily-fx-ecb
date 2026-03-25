@@ -58,7 +58,7 @@ def build_svg(base: str, quote: str) -> str:
     """
     base_name  = CURRENCY_META.get(base,  {}).get("name", base)
     quote_name = CURRENCY_META.get(quote, {}).get("name", quote)
-    subtitle   = f"{base_name}  \u00b7  {quote_name}"
+    subtitle   = f"{base_name}  /  {quote_name}"
     sfsize     = _subtitle_font_size(subtitle)
     # Nudge subtitle up slightly for smaller font sizes so spacing feels even
     subtitle_y = 318 + (28 - sfsize)
@@ -102,7 +102,7 @@ def build_svg(base: str, quote: str) -> str:
                 font-family="Georgia, 'Times New Roman', serif"
                 font-size="16" fill="#1A4060"
                 text-anchor="middle">\
-European Central Bank \u00b7 Reference Rate \u00b7 1999\u2013present</text>
+European Central Bank - Reference Rate - 1999-present</text>
 
         </svg>
     """)
