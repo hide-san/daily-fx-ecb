@@ -27,6 +27,7 @@ import argparse
 import shutil
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 from common import (
@@ -34,6 +35,10 @@ from common import (
     append_github_summary,
     run_command,
     utils_output_dir,
+    utils_slug,
+    notebook_slug,
+    modeling_notebook_slug,
+    KAGGLE_USER,
 )
 
 # ---------------------------------------------------------------------------
@@ -53,6 +58,71 @@ _NOTEBOOK_FILE = {
     "getting-started": lambda pair: f"{pair}_getting_started.ipynb",
     "utils":           lambda _: "fx_utils.py",
 }
+
+
+# ---------------------------------------------------------------------------
+# Slug resolver
+# ---------------------------------------------------------------------------
+
+def _get_slug(pair: str, kind: str) -> str:
+    """Return the Kaggle kernel slug for the given pair and kind."""
+    if kind == "eda":
+        return notebook_slug(pair)
+    elif kind == "modeling":
+        return modeling_notebook_slug(pair)
+    elif kind == "getting-started":
+        return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-getting-started"
+    else:
+        return utils_slug()
+
+
+# ---------------------------------------------------------------------------
+# Wait for kernel to finish
+# ---------------------------------------------------------------------------
+
+def wait_for_kernel(
+    slug: str,
+    dry_run: bool,
+    poll_sec: int = 30,
+    timeout_sec: int = 600,
+) -> bool:
+    """
+    Poll Kaggle until the kernel finishes processing after a push.
+
+    Kaggle queues kernels and runs them asynchronously, so waiting for
+    completion before the next push prevents CPU quota errors.
+
+    Returns True if kernel completed successfully, False otherwise.
+    """
+    if dry_run:
+        print(f"[dry-run] Skipping wait for {slug}.")
+        return True
+
+    start = time.monotonic()
+
+    while True:
+        result = run_command(["kaggle", "kernels", "status", slug])
+        output = (result.stdout + result.stderr).lower()
+
+        if "complete" in output:
+            print(f"{slug}: kernel completed successfully.")
+            return True
+
+        if "error" in output:
+            print(f"ERROR: kernel processing failed for {slug}.", file=sys.stderr)
+            return False
+
+        if time.monotonic() - start > timeout_sec:
+            print(
+                f"ERROR: timed out waiting for {slug} to complete "
+                f"(>{timeout_sec}s).",
+                file=sys.stderr,
+            )
+            return False
+
+        elapsed = int(time.monotonic() - start)
+        print(f"{slug}: still running (elapsed {elapsed}s) -- waiting {poll_sec}s ...")
+        time.sleep(poll_sec)
 
 
 # ---------------------------------------------------------------------------
@@ -98,15 +168,19 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
     )
     push_error = next((msg for msg in _PUSH_ERRORS if msg.lower() in output.lower()), None)
 
-    if result.returncode == 0 and push_error is None:
-        print(f"{pair} {kind}: pushed successfully.")
-        return True
+    if result.returncode != 0 or push_error is not None:
+        reason = push_error or f"exit code {result.returncode}"
+        print(f"ERROR: {kind} push failed for {pair} ({reason}).", file=sys.stderr)
+        if output.strip():
+            print(output.strip(), file=sys.stderr)
+        return False
 
-    reason = push_error or f"exit code {result.returncode}"
-    print(f"ERROR: {kind} push failed for {pair} ({reason}).", file=sys.stderr)
-    if output.strip():
-        print(output.strip(), file=sys.stderr)
-    return False
+    print(f"{pair} {kind}: pushed successfully.")
+
+    # Wait for Kaggle to finish processing the kernel before returning.
+    # This prevents CPU quota errors when pushing multiple notebooks in sequence.
+    slug = _get_slug(pair, kind)
+    return wait_for_kernel(slug, dry_run=dry_run)
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +199,10 @@ def main() -> None:
                         help="Which asset to push (default: eda)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip the actual push.")
+    parser.add_argument("--poll-sec", type=int, default=30,
+                        help="Polling interval in seconds while waiting for kernel (default: 30)")
+    parser.add_argument("--timeout-sec", type=int, default=600,
+                        help="Max wait time in seconds for kernel completion (default: 600)")
     args = parser.parse_args()
 
     if args.kind != "utils" and not args.pair:
