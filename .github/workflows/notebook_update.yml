@@ -24,11 +24,11 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel notebook pushes (1-10)."
+        description: "Max parallel notebook pushes (1-5)."
         required: false
-        default: "3"
+        default: "1"
         type: choice
-        options: ["1", "2", "3", "5", "10"]
+        options: ["1", "2", "3", "5"]
 
       dry_run:
         description: "Set to true to skip Kaggle push (smoke test only)."
