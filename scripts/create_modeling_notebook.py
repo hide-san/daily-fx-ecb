@@ -59,7 +59,7 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 """),
 
         code("""\
-!pip install arch --quiet)"""),
+!pip install arch --quiet"""),
 
         code("""\
 import warnings
