@@ -67,16 +67,16 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         f"## {pair} Daily Exchange Rate (ECB, 1999-present)",
         "",
         f"Daily **{base}/{quote}** cross rate derived from the European Central Bank (ECB) EUR reference rates.  ",
-        f"Base: **{base}** — {base_meta['name']} ({base_meta['country']})  ",
-        f"Quote: **{quote}** — {quote_meta['name']} ({quote_meta['country']})  ",
-        f"Period: 1999-01-04 to {latest} · Updated every business day (~15:00 UTC).  ",
+        f"Base: **{base}** -- {base_meta['name']} ({base_meta['country']})  ",
+        f"Quote: **{quote}** -- {quote_meta['name']} ({quote_meta['country']})  ",
+        f"Period: 1999-01-04 to {latest} - Updated every business day (~15:00 UTC).  ",
         "",
         "### Usage",
         "Suitable for time-series analysis, forecasting, volatility modelling (GARCH),  "
         " and feature engineering for machine learning models.",
         "",
         "### License",
-        "© European Central Bank. Free reuse with attribution under the ECB open data policy.  ",
+        "(c) European Central Bank. Free reuse with attribution under the ECB open data policy.  ",
         "Source: https://www.ecb.europa.eu/home/disclaimer/html/index.en.html",
     ])
 
@@ -88,7 +88,7 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
             "name": "other",
             "uri":  "https://www.ecb.europa.eu/home/disclaimer/html/index.en.html",
             "description": (
-                "© European Central Bank. Free reuse with attribution "
+                "(c) European Central Bank. Free reuse with attribution "
                 "under the ECB open data policy. "
                 "https://www.ecb.europa.eu/home/disclaimer/html/index.en.html"
             ),
