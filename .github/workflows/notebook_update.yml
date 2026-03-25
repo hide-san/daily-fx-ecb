@@ -7,14 +7,14 @@ name: Notebook Update Pipeline
 #   resolve              -- resolve pair list
 #   push-utils           -- generate & push shared fx_utils.py (once, not per-pair)
 #   push-getting-started -- generate & push Getting Started notebooks (per pair)
-#   push-eda             -- generate & push EDA notebooks (per pair)
-#   push-modeling        -- generate & push Modeling notebooks (per pair)
+#   push-eda             -- generate & push EDA notebooks (per pair, after getting-started)
+#   push-modeling        -- generate & push Modeling notebooks (per pair, after eda)
 #   summary              -- write result table
 #
-# The three push jobs are independent and run in parallel.
-# Within each job, pairs are processed with upload_concurrency control.
-# Each push waits for Kaggle to finish processing before moving on,
-# preventing CPU quota errors.
+# The three push jobs run sequentially to avoid hitting Kaggle's CPU session
+# limit (max 5 concurrent batch sessions).
+# Within each job, pairs run one at a time (upload_concurrency=1).
+# Each push waits for Kaggle to finish processing before moving on.
 # ---------------------------------------------------------------------------
 
 on:
@@ -139,11 +139,11 @@ jobs:
           retention-days: 3
 
   # ==========================================================================
-  # Job 3b: EDA notebooks (per pair, after utils is ready)
+  # Job 3b: EDA notebooks (per pair, after getting-started completes)
   # ==========================================================================
   push-eda:
     name: "${{ matrix.pair }}: EDA"
-    needs: [resolve, push-utils]
+    needs: [resolve, push-getting-started]
     runs-on: ubuntu-latest
 
     strategy:
@@ -179,11 +179,11 @@ jobs:
           retention-days: 3
 
   # ==========================================================================
-  # Job 3c: Modeling notebooks (per pair, after utils is ready)
+  # Job 3c: Modeling notebooks (per pair, after eda completes)
   # ==========================================================================
   push-modeling:
     name: "${{ matrix.pair }}: Modeling"
-    needs: [resolve, push-utils]
+    needs: [resolve, push-eda]
     runs-on: ubuntu-latest
 
     strategy:
