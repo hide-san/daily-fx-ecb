@@ -90,11 +90,11 @@ def dataset_title(pair: str) -> str:
 
 
 def notebook_title(pair: str) -> str:
-    return f"Daily FX: {pair} — EDA & Baseline Forecast"
+    return f"Daily FX: {pair} -- EDA & Baseline Forecast"
 
 
 def modeling_notebook_title(pair: str) -> str:
-    return f"Daily FX: {pair} — ARIMA & GARCH Modeling"
+    return f"Daily FX: {pair} -- ARIMA & GARCH Modeling"
 
 
 def series_search_url(resource: str) -> str:
