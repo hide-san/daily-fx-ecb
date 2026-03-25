@@ -4,10 +4,17 @@ name: Notebook Update Pipeline
 # Generates and pushes EDA + modeling + getting-started notebooks to Kaggle.
 #
 # Job order:
-#   resolve            -- resolve pair list
-#   push-utils         -- generate & push shared fx_utils.py (once, not per-pair)
-#   push-notebooks     -- generate & push all three notebooks (per pair)
-#   summary            -- write result table
+#   resolve              -- resolve pair list
+#   push-utils           -- generate & push shared fx_utils.py (once, not per-pair)
+#   push-getting-started -- generate & push Getting Started notebooks (per pair)
+#   push-eda             -- generate & push EDA notebooks (per pair)
+#   push-modeling        -- generate & push Modeling notebooks (per pair)
+#   summary              -- write result table
+#
+# The three push jobs are independent and run in parallel.
+# Within each job, pairs are processed with upload_concurrency control.
+# Each push waits for Kaggle to finish processing before moving on,
+# preventing CPU quota errors.
 # ---------------------------------------------------------------------------
 
 on:
@@ -24,7 +31,7 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel notebook pushes (1-5)."
+        description: "Max parallel notebook pushes per kind (1-5)."
         required: false
         default: "1"
         type: choice
@@ -92,16 +99,16 @@ jobs:
           python scripts/upload_notebook.py --kind utils $DRY_RUN_FLAG
 
   # ==========================================================================
-  # Job 3: Generate + Push all notebooks (per pair, after utils is ready)
+  # Job 3a: Getting Started notebooks (per pair, after utils is ready)
   # ==========================================================================
-  push-notebooks:
-    name: "${{ matrix.pair }}: Notebooks"
+  push-getting-started:
+    name: "${{ matrix.pair }}: Getting Started"
     needs: [resolve, push-utils]
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '3') }}
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
       matrix:
         pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
 
@@ -109,7 +116,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
 
-      # --- Getting Started notebook -----------------------------------------
       - name: Generate ${{ matrix.pair }} Getting Started notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
@@ -125,7 +131,32 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind getting-started $DRY_RUN_FLAG
 
-      # --- EDA notebook -------------------------------------------------------
+      - name: Save Getting Started notebook as artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-getting-started-${{ matrix.pair }}-${{ github.run_id }}
+          path: notebooks/${{ matrix.pair }}/
+          retention-days: 3
+
+  # ==========================================================================
+  # Job 3b: EDA notebooks (per pair, after utils is ready)
+  # ==========================================================================
+  push-eda:
+    name: "${{ matrix.pair }}: EDA"
+    needs: [resolve, push-utils]
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
       - name: Generate ${{ matrix.pair }} EDA notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
@@ -141,13 +172,38 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind eda $DRY_RUN_FLAG
 
-      # --- Modeling notebook --------------------------------------------------
-      - name: Generate ${{ matrix.pair }} modeling notebook
+      - name: Save EDA notebook as artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: failed-eda-${{ matrix.pair }}-${{ github.run_id }}
+          path: notebooks/${{ matrix.pair }}/
+          retention-days: 3
+
+  # ==========================================================================
+  # Job 3c: Modeling notebooks (per pair, after utils is ready)
+  # ==========================================================================
+  push-modeling:
+    name: "${{ matrix.pair }}: Modeling"
+    needs: [resolve, push-utils]
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Generate ${{ matrix.pair }} Modeling notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
 
-      - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
+      - name: Push ${{ matrix.pair }} Modeling notebook to Kaggle
         continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
@@ -157,12 +213,11 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind modeling $DRY_RUN_FLAG
 
-      # --- Failure artifact ---------------------------------------------------
-      - name: Save notebooks as artifact on failure
+      - name: Save Modeling notebook as artifact on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: failed-nb-${{ matrix.pair }}-${{ github.run_id }}
+          name: failed-modeling-${{ matrix.pair }}-${{ github.run_id }}
           path: notebooks/${{ matrix.pair }}/
           retention-days: 3
 
@@ -171,7 +226,7 @@ jobs:
   # ==========================================================================
   summary:
     name: "Notebook Summary"
-    needs: [resolve, push-utils, push-notebooks]
+    needs: [resolve, push-utils, push-getting-started, push-eda, push-modeling]
     runs-on: ubuntu-latest
     if: always()
 
@@ -183,9 +238,11 @@ jobs:
             echo ""
             echo "| Job | Result |"
             echo "|---|---|"
-            echo "| Resolve pairs      | ${{ needs.resolve.result }} |"
-            echo "| Push utils         | ${{ needs.push-utils.result }} |"
-            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-notebooks.result }} |"
+            echo "| Resolve pairs       | ${{ needs.resolve.result }} |"
+            echo "| Push utils          | ${{ needs.push-utils.result }} |"
+            echo "| Push getting-started (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-getting-started.result }} |"
+            echo "| Push EDA (${{ needs.resolve.outputs.pair_count }} pairs)             | ${{ needs.push-eda.result }} |"
+            echo "| Push modeling (${{ needs.resolve.outputs.pair_count }} pairs)        | ${{ needs.push-modeling.result }} |"
             echo ""
             echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
             echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"
