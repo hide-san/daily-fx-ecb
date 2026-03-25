@@ -66,16 +66,14 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
     description = "\n".join([
         f"## {pair} Daily Exchange Rate (ECB, 1999-present)",
         "",
-        f"Daily **{base}/{quote}** cross rate derived from the European Central Bank (ECB)",
-        "EUR reference rates. Updated every business day.",
+        f"Daily **{base}/{quote}** cross rate derived from the European Central Bank (ECB) EUR reference rates.",
+        f"Base: **{base}** — {base_meta['name']} ({base_meta['country']})",
+        f"Quote: **{quote}** — {quote_meta['name']} ({quote_meta['country']})",
+        f"Period: 1999-01-04 to {latest} · Updated every business day (~15:00 UTC).",
         "",
-        "### Currencies",
-        "| | |",
-        "|---|---|",
-        f"| Base currency  | {base} -- {base_meta['name']} ({base_meta['country']}) |",
-        f"| Quote currency | {quote} -- {quote_meta['name']} ({quote_meta['country']}) |",
-        f"| Period         | 1999-01-04 to {latest} |",
-        f"| Update freq    | Daily (every business day, ~15:00 UTC) |",
+        "### License",
+        "© European Central Bank. Free reuse with attribution under the ECB open data policy.",
+        "Source: https://www.ecb.europa.eu/home/disclaimer/html/index.en.html",
     ])
 
     metadata = {
@@ -85,13 +83,18 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         "licenses": [{
             "name": "other",
             "uri":  "https://www.ecb.europa.eu/home/disclaimer/html/index.en.html",
-            "description": "ECB open data -- free reuse with attribution",
+            "description": (
+                "© European Central Bank. Free reuse with attribution "
+                "under the ECB open data policy. "
+                "https://www.ecb.europa.eu/home/disclaimer/html/index.en.html"
+            ),
         }],
         "keywords": [
             "finance",
             "economics",
             "tabular",
             "currencies-and-foreign-exchange",
+            "time-series",
         ],
         "resources": [{
             "path":        f"{pair}.csv",
