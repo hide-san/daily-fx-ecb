@@ -69,6 +69,34 @@ jobs:
       - name: Log resolved pairs
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
+  # ---------------------------------------------------------------------------
+  # カバー画像生成（メインパイプラインとは独立）
+  # continue-on-error: true により、失敗してもワークフロー全体は成功扱いになる。
+  # calc-and-upload に対して needs を持たないため、並列で実行される。
+  # ---------------------------------------------------------------------------
+  generate-cover:
+    name: "${{ matrix.pair }}: Cover Image"
+    needs: resolve
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '5') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+      - name: Generate ${{ matrix.pair }} cover image
+        run: python scripts/generate_cover.py --pair ${{ matrix.pair }}
+      - name: Save ${{ matrix.pair }} cover image as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pair }}-cover-${{ github.run_id }}
+          path: datasets/${{ matrix.pair }}/${{ matrix.pair }}.png
+          retention-days: 3
+
   calc-and-upload:
     name: "${{ matrix.pair }}: Calc -> Upload"
     needs: resolve
@@ -90,8 +118,6 @@ jobs:
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/calc_pair.py --pair ${{ matrix.pair }}
-      - name: Generate ${{ matrix.pair }} cover image
-        run: python scripts/generate_cover.py --pair ${{ matrix.pair }}
       - name: Validate ${{ matrix.pair }} data quality
         run: python scripts/validate_pair.py --pair ${{ matrix.pair }}
       - name: Upload ${{ matrix.pair }} dataset to Kaggle
@@ -111,7 +137,7 @@ jobs:
 
   summary:
     name: "Pipeline Summary"
-    needs: [fetch, resolve, calc-and-upload]
+    needs: [fetch, resolve, generate-cover, calc-and-upload]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -127,6 +153,7 @@ jobs:
             echo "|---|---|"
             echo "| Fetch ECB data | ${{ needs.fetch.result }} |"
             echo "| Resolve pairs  | ${{ needs.resolve.result }} |"
+            echo "| Cover images (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.generate-cover.result }} |"
             echo "| Calc + Upload (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.calc-and-upload.result }} |"
             echo ""
             echo "**Dry run**: ${{ github.event.inputs.dry_run || 'false' }}"
