@@ -64,7 +64,6 @@ In just a few cells you will:
 1. Load the CSV into a pandas DataFrame
 2. See the first and last rows of the data
 3. Plot the full rate history
-4. Plot the most recent 90 days
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
 **Source**: European Central Bank (ECB) -- free reuse with attribution  
@@ -95,15 +94,12 @@ In just a few cells you will:
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from pathlib import Path
-import sys
 
 # Shared Daily FX utilities
 from daily_fx_utils import (
     find_data_dir,
     apply_plot_style,
     COLOR_RATE,
-    COLOR_SIGNAL,
     get_logger,
 )
 
@@ -153,41 +149,10 @@ plt.tight_layout()
 plt.show()"""),
 
         # ------------------------------------------------------------------ #
-        # Plot 2 -- recent 90 days
-        # ------------------------------------------------------------------ #
-        md("## 4. Recent 90 days"),
-        code(f"""\
-recent = df.tail(90).copy()
-
-fig, ax = plt.subplots(figsize=(12, 4))
-
-ax.plot(recent["date"], recent["rate"],
-        linewidth=1.2, color=COLOR_RATE, label="spot rate")
-
-# Mark the latest value
-latest_date = recent["date"].iloc[-1]
-latest_rate = recent["rate"].iloc[-1]
-ax.scatter([latest_date], [latest_rate],
-           color=COLOR_SIGNAL, zorder=5, s=60, label=f"latest: {{latest_rate:.4f}}")
-
-ax.set_title("{pair} -- last 90 days")
-ax.set_ylabel("{quote} per {base}")
-ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO, interval=2))
-ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
-fig.autofmt_xdate(rotation=30, ha="right")
-ax.legend()
-
-plt.tight_layout()
-plt.show()
-
-print(f"Latest date : {{latest_date.date()}}")
-print(f"Latest rate : {{latest_rate:.4f}} {quote} per {base}")"""),
-
-        # ------------------------------------------------------------------ #
         # Next steps
         # ------------------------------------------------------------------ #
         md(f"""\
-## 5. What's next?
+## 4. What's next?
 
 You've confirmed the data loads and plots correctly. Here are a few natural next steps:
 
