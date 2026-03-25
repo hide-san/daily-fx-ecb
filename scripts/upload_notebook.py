@@ -88,18 +88,24 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
             "--path", str(tmp_path),
         ])
 
-    if result.returncode == 0:
-        output = result.stdout + result.stderr
-        if "could not be added to the kernel" in output:
-            print(
-                f"ERROR: {kind} dataset source failed for {pair}:\n{output}",
-                file=sys.stderr,
-            )
-            return False
+    output = result.stdout + result.stderr
+
+    # Kaggle CLI sometimes exits 0 but prints an error on stdout/stderr.
+    # Collect every known error pattern here so none are silently swallowed.
+    _PUSH_ERRORS = (
+        "Kernel push error:",
+        "could not be added to the kernel",
+    )
+    push_error = next((msg for msg in _PUSH_ERRORS if msg.lower() in output.lower()), None)
+
+    if result.returncode == 0 and push_error is None:
         print(f"{pair} {kind}: pushed successfully.")
         return True
 
-    print(f"ERROR: {kind} push failed for {pair}.", file=sys.stderr)
+    reason = push_error or f"exit code {result.returncode}"
+    print(f"ERROR: {kind} push failed for {pair} ({reason}).", file=sys.stderr)
+    if output.strip():
+        print(output.strip(), file=sys.stderr)
     return False
 
 
