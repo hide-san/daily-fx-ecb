@@ -71,6 +71,16 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         f"Quote: **{quote}** — {quote_meta['name']} ({quote_meta['country']})",
         f"Period: 1999-01-04 to {latest} · Updated every business day (~15:00 UTC).",
         "",
+        "### Usage",
+        "Suitable for time-series analysis, forecasting, volatility modelling (GARCH),"
+        " and feature engineering for machine learning models.",
+        "",
+        "### Provenance",
+        "Data sourced from the European Central Bank (ECB) Statistical Data Warehouse.",
+        "ECB publishes official euro foreign exchange reference rates on every TARGET business day"
+        " at approximately 16:00 CET.",
+        f"* Cross rates are computed as: `rate = quote_vs_EUR / base_vs_EUR`",
+        "",
         "### License",
         "© European Central Bank. Free reuse with attribution under the ECB open data policy.",
         "Source: https://www.ecb.europa.eu/home/disclaimer/html/index.en.html",
