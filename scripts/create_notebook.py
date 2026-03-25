@@ -180,7 +180,7 @@ plt.show()"""),
 ---
 
 Dataset updated every business day.
-Source: \u00a9 European Central Bank -- https://data.ecb.europa.eu
+Source: (c) European Central Bank -- https://data.ecb.europa.eu
 """),
     ]
 
