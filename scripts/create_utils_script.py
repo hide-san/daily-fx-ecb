@@ -172,7 +172,7 @@ def print_summary(pair: str, df: object) -> None:
     earliest: str = df["date"].min().strftime("%Y-%m-%d")
     n_rows: int   = len(df)
 
-    print(f"{chr(9472) * 40}")
+    print("-" * 40)
     print(f"  Pair     : {pair}")
     print(f"  Rows     : {n_rows:,}")
     print(f"  Period   : {earliest} -> {latest}")
@@ -182,7 +182,7 @@ def print_summary(pair: str, df: object) -> None:
         returns = df["daily_return_pct"].dropna()
         print(f"  Return   : mean={returns.mean():.4f}%  std={returns.std():.4f}%")
 
-    print(f"{chr(9472) * 40}")
+    print("-" * 40)
 '''
 
 # ---------------------------------------------------------------------------
