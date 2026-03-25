@@ -3,7 +3,7 @@ scripts/create_utils_script.py
 ================================
 Generate the shared utility script pushed to Kaggle as a Utility Script kernel.
 
-Attached as kernel_source in every EDA and modeling notebook.
+Attached as a kernel source in every EDA and modeling notebook.
 Available inside notebooks at:
 
     /kaggle/input/daily-fx-utils/fx_utils.py
@@ -162,7 +162,7 @@ def print_summary(pair: str, df: object) -> None:
 
     Parameters
     ----------
-    pair : str           Currency pair code, e.g. 'USDJPY'.
+    pair : str           Currency pair code, e.g. \'USDJPY\'.
     df   : pd.DataFrame  The loaded Daily FX DataFrame.
     """
     import pandas as pd  # type: ignore[import]
