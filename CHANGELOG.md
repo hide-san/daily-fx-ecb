@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-03-25 -- Daily update (1 pairs)
+
 All structural changes are recorded here manually.
 Daily data updates are appended automatically by the pipeline.
 
