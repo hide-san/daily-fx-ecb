@@ -70,9 +70,10 @@ jobs:
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
   # ---------------------------------------------------------------------------
-  # カバー画像生成（メインパイプラインとは独立）
-  # continue-on-error: true により、失敗してもワークフロー全体は成功扱いになる。
-  # calc-and-upload に対して needs を持たないため、並列で実行される。
+  # Cover image generation (independent from the main pipeline).
+  # continue-on-error: true means a failure here does not fail the overall
+  # workflow. Runs in parallel with calc-and-upload because it declares no
+  # `needs` dependency on that job.
   # ---------------------------------------------------------------------------
   generate-cover:
     name: "${{ matrix.pair }}: Cover Image"
