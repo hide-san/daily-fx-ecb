@@ -14,7 +14,7 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel Kaggle uploads (1-20)."
+        description: "Max parallel Kaggle uploads (1-5)."
         required: false
         default: "1"
         type: choice
