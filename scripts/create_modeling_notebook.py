@@ -59,8 +59,7 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 """),
 
         code("""\
-import subprocess
-subprocess.run(["pip", "install", "arch", "--quiet"], check=True)"""),
+!pip install arch --quiet)"""),
 
         code("""\
 import warnings
