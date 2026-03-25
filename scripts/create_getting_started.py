@@ -5,7 +5,7 @@ Generate a beginner-friendly "Getting Started" notebook for one pair.
 
 This notebook is intentionally minimal: it loads the dataset and produces
 a few simple plots so that newcomers can confirm the data is working and
-see what it looks like right away — no modelling, no statistics.
+see what it looks like right away -- no modelling, no statistics.
 
 Output
 ------
@@ -38,7 +38,7 @@ def getting_started_slug(pair: str) -> str:
 
 
 def getting_started_title(pair: str) -> str:
-    return f"Daily FX: {pair} — Getting Started"
+    return f"Daily FX: {pair} -- Getting Started"
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ In just a few cells you will:
 4. Plot the most recent 90 days
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
-**Source**: European Central Bank (ECB) — free reuse with attribution  
+**Source**: European Central Bank (ECB) -- free reuse with attribution  
 **Pair**: {base} / {quote}
 """),
 
@@ -129,11 +129,11 @@ print()
 df.head()"""),
 
         code("""\
-# Last 5 rows — confirm the data is up to date
+# Last 5 rows -- confirm the data is up to date
 df.tail()"""),
 
         # ------------------------------------------------------------------ #
-        # Plot 1 — full history
+        # Plot 1 -- full history
         # ------------------------------------------------------------------ #
         md("## 3. Full rate history"),
         code(f"""\
@@ -141,7 +141,7 @@ fig, ax = plt.subplots(figsize=(12, 4))
 
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
 
-ax.set_title("{pair} daily spot rate — full history (ECB reference)")
+ax.set_title("{pair} daily spot rate -- full history (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.set_xlabel("")
 
@@ -153,7 +153,7 @@ plt.tight_layout()
 plt.show()"""),
 
         # ------------------------------------------------------------------ #
-        # Plot 2 — recent 90 days
+        # Plot 2 -- recent 90 days
         # ------------------------------------------------------------------ #
         md("## 4. Recent 90 days"),
         code(f"""\
@@ -170,7 +170,7 @@ latest_rate = recent["rate"].iloc[-1]
 ax.scatter([latest_date], [latest_rate],
            color=COLOR_SIGNAL, zorder=5, s=60, label=f"latest: {{latest_rate:.4f}}")
 
-ax.set_title("{pair} — last 90 days")
+ax.set_title("{pair} -- last 90 days")
 ax.set_ylabel("{quote} per {base}")
 ax.xaxis.set_major_locator(mdates.WeekdayLocator(byweekday=mdates.MO, interval=2))
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%b %d"))
@@ -201,7 +201,7 @@ Search for them on Kaggle: {series_search_url("code")}
 ---
 
 Dataset updated every business day.  
-Source: (c) European Central Bank — https://data.ecb.europa.eu
+Source: (c) European Central Bank -- https://data.ecb.europa.eu
 """),
     ]
 
