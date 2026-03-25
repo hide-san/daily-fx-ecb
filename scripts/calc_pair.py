@@ -96,6 +96,80 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         "resources": [{
             "path":        f"{pair}.csv",
             "description": f"Daily {base}/{quote} cross rate, 1999-01-04 to {latest}.",
+            "schema": {
+                "fields": [
+                    {
+                        "name":        "date",
+                        "title":       "Date",
+                        "description": "Trading date (business days only, ECB reference)",
+                        "type":        "date",
+                    },
+                    {
+                        "name":        "rate",
+                        "title":       "Exchange Rate",
+                        "description": (
+                            f"{base}/{quote} spot rate derived from ECB EUR reference rates"
+                        ),
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "daily_return_pct",
+                        "title":       "Daily Return (%)",
+                        "description": "Day-over-day percentage change in the spot rate",
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "log_return",
+                        "title":       "Log Return",
+                        "description": "Natural log of the ratio of consecutive daily rates",
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "ma_7d",
+                        "title":       "7-Day Moving Average",
+                        "description": "7-day simple moving average of the spot rate",
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "ma_21d",
+                        "title":       "21-Day Moving Average",
+                        "description": "21-day simple moving average of the spot rate",
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "ma_63d",
+                        "title":       "63-Day Moving Average",
+                        "description": "63-day simple moving average (~1 quarter) of the spot rate",
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "volatility_20d",
+                        "title":       "20-Day Volatility",
+                        "description": (
+                            "20-day rolling standard deviation of daily_return_pct"
+                        ),
+                        "type":        "number",
+                    },
+                    {
+                        "name":        "year",
+                        "title":       "Year",
+                        "description": "Calendar year extracted from date",
+                        "type":        "integer",
+                    },
+                    {
+                        "name":        "month",
+                        "title":       "Month",
+                        "description": "Calendar month (1-12) extracted from date",
+                        "type":        "integer",
+                    },
+                    {
+                        "name":        "day_of_week",
+                        "title":       "Day of Week",
+                        "description": "ISO weekday index: 0=Monday, 4=Friday",
+                        "type":        "integer",
+                    },
+                ]
+            },
         }],
         "description": description,
     }
