@@ -111,12 +111,12 @@ jobs:
 
       # --- Getting Started notebook -----------------------------------------
       - name: Generate ${{ matrix.pair }} Getting Started notebook
-        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_getting_started.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} Getting Started notebook to Kaggle
+        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
@@ -127,12 +127,12 @@ jobs:
 
       # --- EDA notebook -------------------------------------------------------
       - name: Generate ${{ matrix.pair }} EDA notebook
-        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
+        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
@@ -143,12 +143,12 @@ jobs:
 
       # --- Modeling notebook --------------------------------------------------
       - name: Generate ${{ matrix.pair }} modeling notebook
-        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} modeling notebook to Kaggle
+        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
