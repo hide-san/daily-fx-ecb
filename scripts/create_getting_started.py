@@ -38,7 +38,7 @@ def getting_started_slug(pair: str) -> str:
 
 
 def getting_started_title(pair: str) -> str:
-    return f"Daily FX: {pair} -- Getting Started"
+    return f"Daily FX: {pair} - Getting Started"
 
 
 # ---------------------------------------------------------------------------
@@ -137,7 +137,7 @@ fig, ax = plt.subplots(figsize=(12, 4))
 
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
 
-ax.set_title("{pair} daily spot rate -- full history (ECB reference)")
+ax.set_title("{pair} daily spot rate - full history (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.set_xlabel("")
 
