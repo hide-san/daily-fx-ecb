@@ -122,7 +122,6 @@ jobs:
         run: python scripts/create_getting_started.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} Getting Started notebook to Kaggle
-        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
@@ -163,7 +162,6 @@ jobs:
         run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
-        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
@@ -204,7 +202,6 @@ jobs:
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} Modeling notebook to Kaggle
-        continue-on-error: true
         env:
           KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
           KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
