@@ -111,6 +111,7 @@ jobs:
 
       # --- Getting Started notebook -----------------------------------------
       - name: Generate ${{ matrix.pair }} Getting Started notebook
+        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_getting_started.py --pair ${{ matrix.pair }}
@@ -126,6 +127,7 @@ jobs:
 
       # --- EDA notebook -------------------------------------------------------
       - name: Generate ${{ matrix.pair }} EDA notebook
+        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
@@ -141,6 +143,7 @@ jobs:
 
       # --- Modeling notebook --------------------------------------------------
       - name: Generate ${{ matrix.pair }} modeling notebook
+        continue-on-error: true
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
         run: python scripts/create_modeling_notebook.py --pair ${{ matrix.pair }}
