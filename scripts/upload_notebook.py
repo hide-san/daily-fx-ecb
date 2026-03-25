@@ -1,11 +1,12 @@
 """
-scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|utils]
-=============================================================================
+scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|getting-started|utils]
+=============================================================================================
 Push one pair's notebook (or the shared utils script) to Kaggle Kernels.
 
---kind eda       pushes the EDA notebook       (default)
---kind modeling  pushes the modeling notebook
---kind utils     pushes the shared fx_utils.py (--pair not required)
+--kind eda              pushes the EDA notebook          (default)
+--kind modeling         pushes the modeling notebook
+--kind getting-started  pushes the Getting Started notebook
+--kind utils            pushes the shared fx_utils.py    (--pair not required)
 
 Input
 -----
@@ -14,6 +15,8 @@ notebooks/<PAIR>/
     kernel-metadata.json
     <PAIR>_modeling.ipynb
     kernel-metadata-modeling.json
+    <PAIR>_getting_started.ipynb
+    kernel-metadata-getting-started.json
 
 notebooks/utils/
     fx_utils.py
@@ -38,15 +41,17 @@ from common import (
 # ---------------------------------------------------------------------------
 
 _METADATA_FILE = {
-    "eda":      "kernel-metadata.json",
-    "modeling": "kernel-metadata-modeling.json",
-    "utils":    "kernel-metadata-utils.json",
+    "eda":             "kernel-metadata.json",
+    "modeling":        "kernel-metadata-modeling.json",
+    "getting-started": "kernel-metadata-getting-started.json",
+    "utils":           "kernel-metadata-utils.json",
 }
 
 _NOTEBOOK_FILE = {
-    "eda":      lambda pair: f"{pair}_eda.ipynb",
-    "modeling": lambda pair: f"{pair}_modeling.ipynb",
-    "utils":    lambda _: "fx_utils.py",
+    "eda":             lambda pair: f"{pair}_eda.ipynb",
+    "modeling":        lambda pair: f"{pair}_modeling.ipynb",
+    "getting-started": lambda pair: f"{pair}_getting_started.ipynb",
+    "utils":           lambda _: "fx_utils.py",
 }
 
 
@@ -108,14 +113,16 @@ def main() -> None:
     )
     parser.add_argument("--pair",    default="",
                         help="Pair code, e.g. USDJPY (not required for --kind utils)")
-    parser.add_argument("--kind",    choices=["eda", "modeling", "utils"], default="eda",
+    parser.add_argument("--kind",
+                        choices=["eda", "modeling", "getting-started", "utils"],
+                        default="eda",
                         help="Which asset to push (default: eda)")
     parser.add_argument("--dry-run", action="store_true",
                         help="Skip the actual push.")
     args = parser.parse_args()
 
     if args.kind != "utils" and not args.pair:
-        parser.error("--pair is required for --kind eda and --kind modeling")
+        parser.error("--pair is required for --kind eda, modeling, and getting-started")
 
     pair    = args.pair.upper() if args.pair else "UTILS"
     success = push_notebook(pair, kind=args.kind, dry_run=args.dry_run)
