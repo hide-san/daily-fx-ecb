@@ -30,13 +30,19 @@ class TestUploadDryRun:
 
 class TestVersionUpdate:
     def test_success_returns_true(self, tmp_path: Path) -> None:
-        (tmp_path / "USDJPY").mkdir()
+        pair_dir = tmp_path / "USDJPY"
+        pair_dir.mkdir()
+        (pair_dir / "USDJPY.csv").touch()
+        (pair_dir / "dataset-metadata.json").write_text("{}")
         with patch("upload_kaggle.DATASETS_ROOT", tmp_path), \
              patch("upload_kaggle.run_command", return_value=make_result(0)):
             assert upload_dataset("USDJPY", dry_run=False) is True
 
     def test_unknown_error_returns_false(self, tmp_path: Path) -> None:
-        (tmp_path / "USDJPY").mkdir()
+        pair_dir = tmp_path / "USDJPY"
+        pair_dir.mkdir()
+        (pair_dir / "USDJPY.csv").touch()
+        (pair_dir / "dataset-metadata.json").write_text("{}")
         with patch("upload_kaggle.DATASETS_ROOT", tmp_path), \
              patch("upload_kaggle.run_command", return_value=make_result(1, stderr="500")):
             assert upload_dataset("USDJPY", dry_run=False) is False

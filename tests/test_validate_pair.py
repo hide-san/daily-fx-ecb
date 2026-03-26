@@ -28,12 +28,13 @@ def make_df(
 ) -> pd.DataFrame:
     latest = date.today() - timedelta(days=latest_offset_days)
     dates  = pd.date_range(end=latest, periods=n_rows, freq="B")
-    rates  = np.full(n_rows, 150.0)
+    rates  = np.full(len(dates), 150.0)
 
     if spike_index is not None:
         rates[spike_index] = rates[spike_index - 1] * 1.30
 
     df = pd.DataFrame({"date": dates, "rate": rates})
+    df.loc[df.index[-1], "date"] = pd.Timestamp(latest)
     df["daily_return_pct"] = df["rate"].pct_change() * 100
     df["log_return"]       = np.log(df["rate"]).diff()
     df["ma_7d"]            = df["rate"].rolling(7,  min_periods=1).mean()

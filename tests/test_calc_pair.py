@@ -69,7 +69,7 @@ class TestComputePair:
 
     def test_cross_rate_is_flat_100(self, simple_wide: pd.DataFrame) -> None:
         df = compute_pair(simple_wide, "USD", "JPY")
-        assert (df["rate"] == pytest.approx(100.0)).all()
+        assert np.allclose(df["rate"], 100.0)
 
     def test_row_count_matches_input(self, simple_wide: pd.DataFrame) -> None:
         df = compute_pair(simple_wide, "USD", "JPY")
@@ -117,7 +117,7 @@ class TestWriteDatasetMetadata:
         common.DATASETS_ROOT = original
         with open(tmp_path / "USDJPY" / "dataset-metadata.json") as fh:
             meta = json.load(fh)
-        assert meta["title"] == "Daily FX: USDJPY"
+        assert meta["title"] == "Daily FX: USD/JPY"
 
     def test_no_is_private_key(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common

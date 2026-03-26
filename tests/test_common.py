@@ -31,13 +31,13 @@ class TestParsePair:
 
 class TestNamingConventions:
     def test_dataset_title(self) -> None:
-        assert dataset_title("USDJPY") == "Daily FX: USDJPY"
+        assert dataset_title("USDJPY") == "Daily FX: USD/JPY"
 
     def test_dataset_slug_contains_pair(self) -> None:
-        assert "usdjpy" in dataset_slug("USDJPY")
+        assert "usd-jpy" in dataset_slug("USDJPY")
 
     def test_notebook_slug_contains_pair(self) -> None:
-        assert "usdjpy" in notebook_slug("USDJPY")
+        assert "usd-jpy" in notebook_slug("USDJPY")
 
     def test_dataset_slug_contains_username(self) -> None:
         assert KAGGLE_USER in dataset_slug("USDJPY")
