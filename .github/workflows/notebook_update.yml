@@ -4,17 +4,12 @@ name: Notebook Update Pipeline
 # Generates and pushes EDA + modeling + getting-started notebooks to Kaggle.
 #
 # Job order:
-#   resolve              -- resolve pair list
-#   push-utils           -- generate & push shared fx_utils.py (once, not per-pair)
-#   push-getting-started -- generate & push Getting Started notebooks (per pair)
-#   push-eda             -- generate & push EDA notebooks (per pair, after getting-started)
-#   push-modeling        -- generate & push Modeling notebooks (per pair, after eda)
-#   summary              -- write result table
-#
-# The three push jobs run sequentially to avoid hitting Kaggle's CPU session
-# limit (max 5 concurrent batch sessions).
-# Within each job, pairs run one at a time (upload_concurrency=1).
-# Each push waits for Kaggle to finish processing before moving on.
+#   resolve        -- resolve pair list
+#   push-utils     -- generate & push shared fx_utils.py (once, not per-pair)
+#   push-notebooks -- per-pair job: generates and pushes all 3 notebook kinds
+#                     in sequence (getting-started → eda → modeling).
+#                     max-parallel=3 keeps Kaggle CPU sessions ≤ 3.
+#   summary        -- write result table
 # ---------------------------------------------------------------------------
 
 on:
@@ -32,9 +27,9 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel notebook pushes per kind (1-5)."
+        description: "Max parallel pairs (1-5). Keep ≤ 3 to avoid Kaggle CPU limit."
         required: false
-        default: "1"
+        default: "3"
         type: choice
         options: ["1", "2", "3", "4", "5"]
 
@@ -100,16 +95,21 @@ jobs:
           python scripts/upload_notebook.py --kind utils $DRY_RUN_FLAG
 
   # ==========================================================================
-  # Job 3a: Getting Started notebooks (per pair, after utils is ready)
+  # Job 3: Push all notebooks per pair (getting-started → eda → modeling)
+  #
+  # Pairs run in parallel (max-parallel=3).  Within each pair the three
+  # notebook kinds are pushed sequentially so only one Kaggle CPU session
+  # per pair is active at a time.  With max-parallel=3 the pipeline uses
+  # at most 3 concurrent Kaggle sessions.
   # ==========================================================================
-  push-getting-started:
-    name: "${{ matrix.pair }}: Getting Started"
+  push-notebooks:
+    name: "${{ matrix.pair }}: Notebooks"
     needs: [resolve, push-utils]
     runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '3') }}
       matrix:
         pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
 
@@ -131,33 +131,6 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind getting-started $DRY_RUN_FLAG
 
-      - name: Save Getting Started notebook as artifact on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failed-getting-started-${{ matrix.pair }}-${{ github.run_id }}
-          path: notebooks/${{ matrix.pair }}/
-          retention-days: 3
-
-  # ==========================================================================
-  # Job 3b: EDA notebooks (per pair, after getting-started completes)
-  # ==========================================================================
-  push-eda:
-    name: "${{ matrix.pair }}: EDA"
-    needs: [resolve, push-getting-started]
-    if: always() && needs.resolve.result == 'success'
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
-      matrix:
-        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/python-setup
-
       - name: Generate ${{ matrix.pair }} EDA notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
@@ -171,33 +144,6 @@ jobs:
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind eda $DRY_RUN_FLAG
-
-      - name: Save EDA notebook as artifact on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: failed-eda-${{ matrix.pair }}-${{ github.run_id }}
-          path: notebooks/${{ matrix.pair }}/
-          retention-days: 3
-
-  # ==========================================================================
-  # Job 3c: Modeling notebooks (per pair, after eda completes)
-  # ==========================================================================
-  push-modeling:
-    name: "${{ matrix.pair }}: Modeling"
-    needs: [resolve, push-eda]
-    if: always() && needs.resolve.result == 'success'
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '1') }}
-      matrix:
-        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
-
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/python-setup
 
       - name: Generate ${{ matrix.pair }} Modeling notebook
         env:
@@ -213,11 +159,11 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind modeling $DRY_RUN_FLAG
 
-      - name: Save Modeling notebook as artifact on failure
+      - name: Save notebooks as artifact on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: failed-modeling-${{ matrix.pair }}-${{ github.run_id }}
+          name: failed-notebooks-${{ matrix.pair }}-${{ github.run_id }}
           path: notebooks/${{ matrix.pair }}/
           retention-days: 3
 
@@ -226,7 +172,7 @@ jobs:
   # ==========================================================================
   summary:
     name: "Notebook Summary"
-    needs: [resolve, push-utils, push-getting-started, push-eda, push-modeling]
+    needs: [resolve, push-utils, push-notebooks]
     runs-on: ubuntu-latest
     if: always()
 
@@ -238,11 +184,9 @@ jobs:
             echo ""
             echo "| Job | Result |"
             echo "|---|---|"
-            echo "| Resolve pairs       | ${{ needs.resolve.result }} |"
-            echo "| Push utils          | ${{ needs.push-utils.result }} |"
-            echo "| Push getting-started (${{ needs.resolve.outputs.pair_count }} pairs) | ${{ needs.push-getting-started.result }} |"
-            echo "| Push EDA (${{ needs.resolve.outputs.pair_count }} pairs)             | ${{ needs.push-eda.result }} |"
-            echo "| Push modeling (${{ needs.resolve.outputs.pair_count }} pairs)        | ${{ needs.push-modeling.result }} |"
+            echo "| Resolve pairs | ${{ needs.resolve.result }} |"
+            echo "| Push utils    | ${{ needs.push-utils.result }} |"
+            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs × 3 kinds) | ${{ needs.push-notebooks.result }} |"
             echo ""
             echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
             echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"
