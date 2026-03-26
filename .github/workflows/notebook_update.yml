@@ -120,7 +120,7 @@ jobs:
       - name: Generate ${{ matrix.pair }} Getting Started notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-        run: python scripts/create_getting_started.py --pair ${{ matrix.pair }}
+        run: python scripts/create_getting_started_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} Getting Started notebook to Kaggle
         env:
@@ -161,7 +161,7 @@ jobs:
       - name: Generate ${{ matrix.pair }} EDA notebook
         env:
           KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
-        run: python scripts/create_notebook.py --pair ${{ matrix.pair }}
+        run: python scripts/create_eda_notebook.py --pair ${{ matrix.pair }}
 
       - name: Push ${{ matrix.pair }} EDA notebook to Kaggle
         env:

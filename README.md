@@ -28,7 +28,7 @@ Job 2  resolve        resolve_pairs.py      1 runner
 |
 v
 Job 3  calc-and-upload                      N runners
-       calc_pair.py / generate_cover.py / validate_pair.py / upload_kaggle.py
+       calc_pair.py / generate_cover.py / validate_pair.py / upload_dataset.py
 |
 v
 Job 4  summary                              1 runner (always)
@@ -52,19 +52,19 @@ scripts/
   calc_pair.py              Job 3 -- compute cross rates + features
   generate_cover.py         Job 3 -- create PNG cover image
   validate_pair.py          Job 3 -- data quality gate
-  upload_kaggle.py          Job 3 -- upload dataset to Kaggle
-  create_utils_script.py    generate shared fx_utils.py
-  create_notebook.py        generate EDA notebook
-  create_modeling_notebook.py  generate ARIMA/GARCH notebook
-  upload_notebook.py        push notebook or utils script to Kaggle
+  upload_dataset.py                  Job 3 -- upload dataset to Kaggle
+  create_utils_script.py             generate shared fx_utils.py
+  create_eda_notebook.py             generate EDA notebook
+  create_modeling_notebook.py        generate ARIMA/GARCH notebook
+  create_getting_started_notebook.py generate beginner notebook
+  upload_notebook.py                 push notebook or utils script to Kaggle
 
 tests/
   test_calc_pair.py
   test_common.py
   test_fetch_ecb.py
-  test_kaggle_metadata.py
   test_resolve_pairs.py
-  test_upload_kaggle.py
+  test_upload_dataset.py
   test_validate_pair.py
 ```
 

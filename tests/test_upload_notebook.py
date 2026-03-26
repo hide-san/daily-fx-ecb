@@ -181,7 +181,7 @@ class TestGetSlug:
         assert _get_slug("any", "utils") == utils_slug()
 
     def test_getting_started_returns_getting_started_slug(self) -> None:
-        from create_getting_started import getting_started_slug
+        from create_getting_started_notebook import getting_started_slug
         from upload_notebook import _get_slug
 
         assert _get_slug("USDJPY", "getting-started") == getting_started_slug("USDJPY")

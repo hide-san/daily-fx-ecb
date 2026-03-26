@@ -1,7 +1,7 @@
 """
 scripts/validate_pair.py  --pair <BASEQUOTE>
 =============================================
-Data quality gate between calc_pair.py and upload_kaggle.py.
+Data quality gate between calc_pair.py and upload_dataset.py.
 """
 
 import argparse

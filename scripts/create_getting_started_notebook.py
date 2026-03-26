@@ -1,6 +1,6 @@
 """
-scripts/create_getting_started.py  --pair <BASEQUOTE>
-======================================================
+scripts/create_getting_started_notebook.py  --pair <BASEQUOTE>
+===============================================================
 Generate a beginner-friendly "Getting Started" notebook for one pair.
 
 Output

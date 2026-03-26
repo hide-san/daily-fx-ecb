@@ -128,7 +128,7 @@ jobs:
         run: |
           DRY_RUN_FLAG=""
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
-          python scripts/upload_kaggle.py --pair ${{ matrix.pair }} $DRY_RUN_FLAG
+          python scripts/upload_dataset.py --pair ${{ matrix.pair }} $DRY_RUN_FLAG
       - name: Save dataset as artifact
         uses: actions/upload-artifact@v4
         with:

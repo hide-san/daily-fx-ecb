@@ -1,6 +1,6 @@
 """
-scripts/create_notebook.py  --pair <BASEQUOTE>
-===============================================
+scripts/create_eda_notebook.py  --pair <BASEQUOTE>
+==================================================
 Job 3 (notebook step) -- Generate a Kaggle-ready EDA notebook for one pair.
 
 Output

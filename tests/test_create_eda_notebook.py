@@ -1,4 +1,4 @@
-"""tests/test_create_notebook.py"""
+"""tests/test_create_eda_notebook.py"""
 
 import json
 import os
@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from create_notebook import build_notebook
-from create_notebook import write_kernel_metadata as write_eda_metadata
+from create_eda_notebook import build_notebook
+from create_eda_notebook import write_kernel_metadata as write_eda_metadata
 
 
 class TestBuildNotebook:
@@ -37,19 +37,19 @@ class TestBuildNotebook:
 
 class TestWriteKernelMetadataEda:
     def test_creates_metadata_file(self, tmp_path: Path) -> None:
-        with patch("create_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_eda_notebook.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
         assert (tmp_path / "kernel-metadata.json").exists()
 
     def test_metadata_has_required_keys(self, tmp_path: Path) -> None:
-        with patch("create_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_eda_notebook.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
         meta = json.loads((tmp_path / "kernel-metadata.json").read_text())
         for key in ("id", "title", "code_file", "language", "kernel_type"):
             assert key in meta, f"missing key: {key}"
 
     def test_code_file_is_eda_notebook(self, tmp_path: Path) -> None:
-        with patch("create_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_eda_notebook.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
         meta = json.loads((tmp_path / "kernel-metadata.json").read_text())
         assert meta["code_file"] == "USDJPY_eda.ipynb"
@@ -57,14 +57,14 @@ class TestWriteKernelMetadataEda:
 
 class TestMainCreateNotebook:
     def test_main_creates_notebook_and_metadata(self, tmp_path: Path) -> None:
-        import create_notebook
+        import create_eda_notebook
 
         summary = tmp_path / "summary.md"
         with (
-            patch("sys.argv", ["create_notebook.py", "--pair", "USDJPY"]),
-            patch("create_notebook.notebook_output_dir", return_value=tmp_path),
+            patch("sys.argv", ["create_eda_notebook.py", "--pair", "USDJPY"]),
+            patch("create_eda_notebook.notebook_output_dir", return_value=tmp_path),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
-            create_notebook.main()
+            create_eda_notebook.main()
         assert (tmp_path / "USDJPY_eda.ipynb").exists()
         assert (tmp_path / "kernel-metadata.json").exists()

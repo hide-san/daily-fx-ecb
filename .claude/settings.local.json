@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(py -m pytest tests/ -v)",
+      "Bash(py -m pytest tests/test_validate_pair.py -v)",
+      "Bash(py -m pytest tests/ --cov=scripts --cov-report=term-missing --cov-fail-under=80 -q)",
+      "Bash(source .venv/Scripts/activate)",
+      "Bash(pip install:*)",
+      "Bash(py:*)",
+      "Bash(/c/tmp/PycharmProjects/daily-fx-ecb/.venv/Scripts/python -m pytest --version 2>&1)",
+      "Bash(source /c/tmp/PycharmProjects/daily-fx-ecb/.venv/Scripts/activate)",
+      "Bash(wait:*)",
+      "Bash(git add:*)",
+      "Bash(ruff check:*)",
+      "Bash(mypy scripts/)",
+      "Bash(ruff format:*)",
+      "Bash(ls /c/tmp/PycharmProjects/daily-fx-ecb/tests/*.py)",
+      "Bash(git mv:*)"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 """
-scripts/upload_kaggle.py  --pair <BASEQUOTE>
+scripts/upload_dataset.py  --pair <BASEQUOTE>
 =============================================
 Job 3 (upload step) -- Upload one pair's dataset to Kaggle.
 """

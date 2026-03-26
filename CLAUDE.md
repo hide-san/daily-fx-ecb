@@ -36,13 +36,13 @@ This is a fully automated pipeline that fetches ECB FX data and publishes per-pa
 **Daily update** (weekdays 15:30 UTC):
 1. `fetch_ecb.py` — pulls EUR reference rates for 20 currencies from the ECB API → `ecb_raw/all_currencies.csv`
 2. `resolve_pairs.py` — resolves `pairs.txt` (or all permutations) into a GitHub Actions matrix
-3. Per pair (parallelized): `calc_pair.py` → `validate_pair.py` → `upload_kaggle.py`
+3. Per pair (parallelized): `calc_pair.py` → `validate_pair.py` → `upload_dataset.py`
 4. `generate_cover.py` — generates 1280×640 PNG cover image (independent, continue-on-error)
 
 **Notebook update** (Mondays 16:00 UTC):
 - `create_utils_script.py` → `upload_notebook.py --kind utils` (once)
-- `create_getting_started.py` → `upload_notebook.py --kind getting-started` (per pair)
-- `create_notebook.py` → `upload_notebook.py --kind eda` (per pair)
+- `create_getting_started_notebook.py` → `upload_notebook.py --kind getting-started` (per pair)
+- `create_eda_notebook.py` → `upload_notebook.py --kind eda` (per pair)
 - `create_modeling_notebook.py` → `upload_notebook.py --kind modeling` (per pair)
 
 ### Cross-rate computation

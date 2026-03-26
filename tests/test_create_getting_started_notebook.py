@@ -1,4 +1,4 @@
-"""tests/test_create_getting_started.py"""
+"""tests/test_create_getting_started_notebook.py"""
 
 import json
 import os
@@ -8,12 +8,12 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from create_getting_started import (
+from create_getting_started_notebook import (
     build_getting_started_notebook,
     getting_started_slug,
     getting_started_title,
 )
-from create_getting_started import write_kernel_metadata as write_gs_metadata
+from create_getting_started_notebook import write_kernel_metadata as write_gs_metadata
 
 
 class TestGettingStartedHelpers:
@@ -49,12 +49,12 @@ class TestBuildGettingStartedNotebook:
 
 class TestWriteKernelMetadataGettingStarted:
     def test_creates_metadata_file(self, tmp_path: Path) -> None:
-        with patch("create_getting_started.notebook_output_dir", return_value=tmp_path):
+        with patch("create_getting_started_notebook.notebook_output_dir", return_value=tmp_path):
             write_gs_metadata("USDJPY")
         assert (tmp_path / "kernel-metadata-getting-started.json").exists()
 
     def test_code_file_is_getting_started_notebook(self, tmp_path: Path) -> None:
-        with patch("create_getting_started.notebook_output_dir", return_value=tmp_path):
+        with patch("create_getting_started_notebook.notebook_output_dir", return_value=tmp_path):
             write_gs_metadata("USDJPY")
         meta = json.loads((tmp_path / "kernel-metadata-getting-started.json").read_text())
         assert meta["code_file"] == "USDJPY_getting_started.ipynb"
@@ -62,14 +62,14 @@ class TestWriteKernelMetadataGettingStarted:
 
 class TestMainCreateGettingStarted:
     def test_main_creates_notebook_and_metadata(self, tmp_path: Path) -> None:
-        import create_getting_started
+        import create_getting_started_notebook
 
         summary = tmp_path / "summary.md"
         with (
-            patch("sys.argv", ["create_getting_started.py", "--pair", "USDJPY"]),
-            patch("create_getting_started.notebook_output_dir", return_value=tmp_path),
+            patch("sys.argv", ["create_getting_started_notebook.py", "--pair", "USDJPY"]),
+            patch("create_getting_started_notebook.notebook_output_dir", return_value=tmp_path),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
-            create_getting_started.main()
+            create_getting_started_notebook.main()
         assert (tmp_path / "USDJPY_getting_started.ipynb").exists()
         assert (tmp_path / "kernel-metadata-getting-started.json").exists()

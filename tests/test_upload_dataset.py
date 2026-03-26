@@ -1,4 +1,4 @@
-"""tests/test_upload_kaggle.py"""
+"""tests/test_upload_dataset.py"""
 
 import subprocess
 import sys
@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from upload_kaggle import upload_dataset, wait_until_ready
+from upload_dataset import upload_dataset, wait_until_ready
 
 
 def make_result(returncode: int, stdout: str = "", stderr: str = "") -> MagicMock:
@@ -20,7 +20,7 @@ def make_result(returncode: int, stdout: str = "", stderr: str = "") -> MagicMoc
 
 class TestUploadDryRun:
     def test_returns_true_without_calling_kaggle(self, tmp_path: Path) -> None:
-        with patch("upload_kaggle.run_command") as mock_run:
+        with patch("upload_dataset.run_command") as mock_run:
             result = upload_dataset("USDJPY", dry_run=True)
         assert result is True
         mock_run.assert_not_called()
@@ -33,8 +33,8 @@ class TestVersionUpdate:
         (pair_dir / "USDJPY.csv").touch()
         (pair_dir / "dataset-metadata.json").write_text("{}")
         with (
-            patch("upload_kaggle.DATASETS_ROOT", tmp_path),
-            patch("upload_kaggle.run_command", return_value=make_result(0)),
+            patch("upload_dataset.DATASETS_ROOT", tmp_path),
+            patch("upload_dataset.run_command", return_value=make_result(0)),
         ):
             assert upload_dataset("USDJPY", dry_run=False) is True
 
@@ -44,8 +44,8 @@ class TestVersionUpdate:
         (pair_dir / "USDJPY.csv").touch()
         (pair_dir / "dataset-metadata.json").write_text("{}")
         with (
-            patch("upload_kaggle.DATASETS_ROOT", tmp_path),
-            patch("upload_kaggle.run_command", return_value=make_result(1, stderr="500")),
+            patch("upload_dataset.DATASETS_ROOT", tmp_path),
+            patch("upload_dataset.run_command", return_value=make_result(1, stderr="500")),
         ):
             assert upload_dataset("USDJPY", dry_run=False) is False
 
@@ -59,21 +59,21 @@ class TestVersionPath:
         create_fail = make_result(1, stderr="already exists")
         version_ok = make_result(0)
         with (
-            patch("upload_kaggle.DATASETS_ROOT", tmp_path),
-            patch("upload_kaggle.run_command", side_effect=[create_fail, version_ok]),
+            patch("upload_dataset.DATASETS_ROOT", tmp_path),
+            patch("upload_dataset.run_command", side_effect=[create_fail, version_ok]),
         ):
             assert upload_dataset("USDJPY", dry_run=False) is True
 
 
 class TestMissingDirectory:
     def test_returns_false_when_dir_missing(self, tmp_path: Path) -> None:
-        with patch("upload_kaggle.DATASETS_ROOT", tmp_path):
+        with patch("upload_dataset.DATASETS_ROOT", tmp_path):
             assert upload_dataset("USDJPY", dry_run=False) is False
 
 
 class TestWaitDryRun:
     def test_returns_true_without_polling(self) -> None:
-        with patch("upload_kaggle.run_command") as mock_run:
+        with patch("upload_dataset.run_command") as mock_run:
             result = wait_until_ready("USDJPY", dry_run=True)
         assert result is True
         mock_run.assert_not_called()
@@ -83,8 +83,8 @@ class TestWaitUntilReady:
     def test_returns_true_when_immediately_ready(self) -> None:
         ready_result = make_result(0, stdout="Status: ready")
         with (
-            patch("upload_kaggle.run_command", return_value=ready_result),
-            patch("upload_kaggle.time.sleep"),
+            patch("upload_dataset.run_command", return_value=ready_result),
+            patch("upload_dataset.time.sleep"),
         ):
             assert wait_until_ready("USDJPY", dry_run=False) is True
 
@@ -92,8 +92,8 @@ class TestWaitUntilReady:
         not_ready = make_result(0, stdout="Status: running")
         ready = make_result(0, stdout="Status: ready")
         with (
-            patch("upload_kaggle.run_command", side_effect=[not_ready, not_ready, ready]),
-            patch("upload_kaggle.time.sleep") as mock_sleep,
+            patch("upload_dataset.run_command", side_effect=[not_ready, not_ready, ready]),
+            patch("upload_dataset.time.sleep") as mock_sleep,
         ):
             result = wait_until_ready("USDJPY", dry_run=False, poll_sec=30)
         assert result is True
@@ -102,17 +102,17 @@ class TestWaitUntilReady:
     def test_returns_false_on_processing_error(self) -> None:
         error_result = make_result(0, stdout="Status: error -- processing failed")
         with (
-            patch("upload_kaggle.run_command", return_value=error_result),
-            patch("upload_kaggle.time.sleep"),
+            patch("upload_dataset.run_command", return_value=error_result),
+            patch("upload_dataset.time.sleep"),
         ):
             assert wait_until_ready("USDJPY", dry_run=False) is False
 
     def test_returns_false_on_timeout(self) -> None:
         not_ready = make_result(0, stdout="Status: running")
         with (
-            patch("upload_kaggle.run_command", return_value=not_ready),
-            patch("upload_kaggle.time.sleep"),
-            patch("upload_kaggle.time.monotonic", side_effect=[0, 0, 9999, 9999]),
+            patch("upload_dataset.run_command", return_value=not_ready),
+            patch("upload_dataset.time.sleep"),
+            patch("upload_dataset.time.monotonic", side_effect=[0, 0, 9999, 9999]),
         ):
             result = wait_until_ready("USDJPY", dry_run=False, timeout_sec=100)
         assert result is False
