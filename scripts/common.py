@@ -8,47 +8,48 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # Currency metadata  (display only)
 # ---------------------------------------------------------------------------
 
 CURRENCY_META: dict[str, dict[str, str]] = {
-    "USD": {"country": "United States",  "name": "US Dollar"},
-    "JPY": {"country": "Japan",          "name": "Japanese Yen"},
+    "USD": {"country": "United States", "name": "US Dollar"},
+    "JPY": {"country": "Japan", "name": "Japanese Yen"},
     "GBP": {"country": "United Kingdom", "name": "Pound Sterling"},
-    "CHF": {"country": "Switzerland",    "name": "Swiss Franc"},
-    "AUD": {"country": "Australia",      "name": "Australian Dollar"},
-    "CAD": {"country": "Canada",         "name": "Canadian Dollar"},
-    "CNY": {"country": "China",          "name": "Chinese Renminbi"},
-    "KRW": {"country": "South Korea",    "name": "South Korean Won"},
-    "HKD": {"country": "Hong Kong",      "name": "Hong Kong Dollar"},
-    "SGD": {"country": "Singapore",      "name": "Singapore Dollar"},
-    "SEK": {"country": "Sweden",         "name": "Swedish Krona"},
-    "NOK": {"country": "Norway",         "name": "Norwegian Krone"},
-    "DKK": {"country": "Denmark",        "name": "Danish Krone"},
-    "NZD": {"country": "New Zealand",    "name": "New Zealand Dollar"},
-    "MXN": {"country": "Mexico",         "name": "Mexican Peso"},
-    "BRL": {"country": "Brazil",         "name": "Brazilian Real"},
-    "INR": {"country": "India",          "name": "Indian Rupee"},
-    "ZAR": {"country": "South Africa",   "name": "South African Rand"},
-    "TRY": {"country": "Turkey",         "name": "Turkish Lira"},
-    "PLN": {"country": "Poland",         "name": "Polish Zloty"},
+    "CHF": {"country": "Switzerland", "name": "Swiss Franc"},
+    "AUD": {"country": "Australia", "name": "Australian Dollar"},
+    "CAD": {"country": "Canada", "name": "Canadian Dollar"},
+    "CNY": {"country": "China", "name": "Chinese Renminbi"},
+    "KRW": {"country": "South Korea", "name": "South Korean Won"},
+    "HKD": {"country": "Hong Kong", "name": "Hong Kong Dollar"},
+    "SGD": {"country": "Singapore", "name": "Singapore Dollar"},
+    "SEK": {"country": "Sweden", "name": "Swedish Krona"},
+    "NOK": {"country": "Norway", "name": "Norwegian Krone"},
+    "DKK": {"country": "Denmark", "name": "Danish Krone"},
+    "NZD": {"country": "New Zealand", "name": "New Zealand Dollar"},
+    "MXN": {"country": "Mexico", "name": "Mexican Peso"},
+    "BRL": {"country": "Brazil", "name": "Brazilian Real"},
+    "INR": {"country": "India", "name": "Indian Rupee"},
+    "ZAR": {"country": "South Africa", "name": "South African Rand"},
+    "TRY": {"country": "Turkey", "name": "Turkish Lira"},
+    "PLN": {"country": "Poland", "name": "Polish Zloty"},
 }
 
 # ---------------------------------------------------------------------------
 # ECB API
 # ---------------------------------------------------------------------------
 
-ECB_API_URL    = "https://data-api.ecb.europa.eu/service/data/EXR"
+ECB_API_URL = "https://data-api.ecb.europa.eu/service/data/EXR"
 ECB_START_DATE = "1999-01-01"
 
 # ---------------------------------------------------------------------------
 # Directory layout
 # ---------------------------------------------------------------------------
 
-ECB_RAW_PATH   = Path("ecb_raw/all_currencies.csv")
-DATASETS_ROOT  = Path("datasets")
+ECB_RAW_PATH = Path("ecb_raw/all_currencies.csv")
+DATASETS_ROOT = Path("datasets")
 NOTEBOOKS_ROOT = Path("notebooks")
 
 # ---------------------------------------------------------------------------
@@ -56,9 +57,7 @@ NOTEBOOKS_ROOT = Path("notebooks")
 # ---------------------------------------------------------------------------
 
 KAGGLE_USER = (
-    os.environ.get("KAGGLE_USERNAME")
-    or os.environ.get("KAGGLE_USER")
-    or "YOUR_KAGGLE_USERNAME"
+    os.environ.get("KAGGLE_USERNAME") or os.environ.get("KAGGLE_USER") or "YOUR_KAGGLE_USERNAME"
 )
 
 GITHUB_MATRIX_LIMIT = 256
@@ -66,6 +65,7 @@ GITHUB_MATRIX_LIMIT = 256
 # ---------------------------------------------------------------------------
 # Pair helpers
 # ---------------------------------------------------------------------------
+
 
 def parse_pair(pair: str) -> tuple[str, str]:
     """Split a 6-character pair code into (base, quote)."""
@@ -128,7 +128,8 @@ def notebook_output_dir(pair: str) -> Path:
 # Subprocess wrapper
 # ---------------------------------------------------------------------------
 
-def run_command(cmd: list[str]) -> subprocess.CompletedProcess:
+
+def run_command(cmd: list[str]) -> subprocess.CompletedProcess[str]:
     print(f"$ {' '.join(cmd)}")
     result = subprocess.run(cmd, capture_output=True, text=True)
     if result.stdout:
@@ -141,6 +142,7 @@ def run_command(cmd: list[str]) -> subprocess.CompletedProcess:
 # ---------------------------------------------------------------------------
 # GitHub Actions helpers
 # ---------------------------------------------------------------------------
+
 
 def append_github_summary(text: str) -> None:
     summary_path = os.environ.get("GITHUB_STEP_SUMMARY", "/dev/null")
@@ -156,8 +158,8 @@ def emit_github_warning(message: str, script: str = "scripts/common.py") -> None
 # Kaggle metadata constraints
 # ---------------------------------------------------------------------------
 
-KAGGLE_TITLE_MIN    = 6
-KAGGLE_TITLE_MAX    = 50
+KAGGLE_TITLE_MIN = 6
+KAGGLE_TITLE_MAX = 50
 KAGGLE_SUBTITLE_MIN = 20
 KAGGLE_SUBTITLE_MAX = 80
 KAGGLE_KEYWORDS_MAX = 20
@@ -176,9 +178,7 @@ def validate_kaggle_metadata(title: str, subtitle: str, keywords: list[str]) -> 
             f"[{KAGGLE_SUBTITLE_MIN}, {KAGGLE_SUBTITLE_MAX}]: '{subtitle}'"
         )
     if len(keywords) > KAGGLE_KEYWORDS_MAX:
-        errors.append(
-            f"keywords count {len(keywords)} exceeds limit {KAGGLE_KEYWORDS_MAX}"
-        )
+        errors.append(f"keywords count {len(keywords)} exceeds limit {KAGGLE_KEYWORDS_MAX}")
     return errors
 
 
@@ -186,8 +186,10 @@ def validate_kaggle_metadata(title: str, subtitle: str, keywords: list[str]) -> 
 # Notebook cell builders
 # ---------------------------------------------------------------------------
 
-def md(source: str) -> dict:
+
+def md(source: str) -> dict[str, Any]:
     import hashlib
+
     return {
         "cell_type": "markdown",
         "id": hashlib.md5(source.encode()).hexdigest()[:8],
@@ -196,8 +198,9 @@ def md(source: str) -> dict:
     }
 
 
-def code(source: str) -> dict:
+def code(source: str) -> dict[str, Any]:
     import hashlib
+
     return {
         "cell_type": "code",
         "id": hashlib.md5(source.encode()).hexdigest()[:8],

@@ -12,7 +12,6 @@ import sys
 from pathlib import Path
 
 import pandas as pd
-
 from common import ECB_RAW_PATH, GITHUB_MATRIX_LIMIT, append_github_summary
 
 PAIRS_FILE = Path("pairs.txt")
@@ -29,23 +28,21 @@ def all_pairs(currencies: list[str]) -> list[str]:
 
 def load_pairs_file(path: Path) -> list[str]:
     lines = path.read_text(encoding="utf-8").splitlines()
-    return list(dict.fromkeys(
-        line.strip().upper()
-        for line in lines
-        if line.strip() and not line.strip().startswith("#")
-    ))
+    return list(
+        dict.fromkeys(
+            line.strip().upper()
+            for line in lines
+            if line.strip() and not line.strip().startswith("#")
+        )
+    )
 
 
 def parse_pair_input(raw: str) -> list[str]:
-    return list(dict.fromkeys(
-        p.strip().upper()
-        for p in raw.split(",")
-        if p.strip()
-    ))
+    return list(dict.fromkeys(p.strip().upper() for p in raw.split(",") if p.strip()))
 
 
 def filter_valid_pairs(pairs: list[str], valid_set: set[str]) -> list[str]:
-    known   = [p for p in pairs if p in valid_set]
+    known = [p for p in pairs if p in valid_set]
     unknown = [p for p in pairs if p not in valid_set]
     if unknown:
         print(f"WARNING: Unrecognised pairs will be skipped: {unknown}", file=sys.stderr)
@@ -60,15 +57,15 @@ def main() -> None:
     currencies_info = "n/a"
 
     if args.pairs.strip():
-        source   = "--pairs argument"
+        source = "--pairs argument"
         resolved = parse_pair_input(args.pairs)
     elif PAIRS_FILE.exists():
-        source   = str(PAIRS_FILE)
+        source = str(PAIRS_FILE)
         resolved = load_pairs_file(PAIRS_FILE)
         print(f"Using {PAIRS_FILE} ({len(resolved)} pairs listed).")
     else:
-        source          = "all combinations (no pairs.txt found)"
-        currencies      = load_available_currencies()
+        source = "all combinations (no pairs.txt found)"
+        currencies = load_available_currencies()
         currencies_info = str(len(currencies))
         print(f"Available currencies ({len(currencies)}): {currencies}")
         resolved = all_pairs(currencies)
@@ -82,8 +79,7 @@ def main() -> None:
 
     if len(resolved) > GITHUB_MATRIX_LIMIT:
         print(
-            f"ERROR: {len(resolved)} pairs exceeds GitHub matrix limit of "
-            f"{GITHUB_MATRIX_LIMIT}.",
+            f"ERROR: {len(resolved)} pairs exceeds GitHub matrix limit of {GITHUB_MATRIX_LIMIT}.",
             file=sys.stderr,
         )
         sys.exit(1)

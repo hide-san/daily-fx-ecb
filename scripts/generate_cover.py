@@ -20,7 +20,6 @@ import argparse
 import textwrap
 
 import cairosvg
-
 from common import (
     CURRENCY_META,
     append_github_summary,
@@ -28,10 +27,10 @@ from common import (
     parse_pair,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _subtitle_font_size(text: str) -> int:
     """Return a font size that keeps the subtitle within ~580 px.
@@ -50,16 +49,17 @@ def _subtitle_font_size(text: str) -> int:
 # SVG builder
 # ---------------------------------------------------------------------------
 
+
 def build_svg(base: str, quote: str) -> str:
     """Return a 1280x640 SVG string.
 
     Safe zone for square crop: x = 320 ... 960  (centred on x = 640).
     All essential text is placed within this range.
     """
-    base_name  = CURRENCY_META.get(base,  {}).get("name", base)
+    base_name = CURRENCY_META.get(base, {}).get("name", base)
     quote_name = CURRENCY_META.get(quote, {}).get("name", quote)
-    subtitle   = f"{base_name}  /  {quote_name}"
-    sfsize     = _subtitle_font_size(subtitle)
+    subtitle = f"{base_name}  /  {quote_name}"
+    sfsize = _subtitle_font_size(subtitle)
     # Nudge subtitle up slightly for smaller font sizes so spacing feels even
     subtitle_y = 318 + (28 - sfsize)
 
@@ -112,16 +112,17 @@ European Central Bank - Reference Rate - 1999-present</text>
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate a 1280x640 PNG cover image for one currency pair."
     )
     parser.add_argument("--pair", required=True, help="Pair code, e.g. USDJPY")
-    args        = parser.parse_args()
-    pair        = args.pair.upper()
+    args = parser.parse_args()
+    pair = args.pair.upper()
     base, quote = parse_pair(pair)
 
-    output_dir  = pair_output_dir(pair)
+    output_dir = pair_output_dir(pair)
     output_path = output_dir / f"{pair}.png"
 
     cairosvg.svg2png(

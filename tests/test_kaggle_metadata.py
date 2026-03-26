@@ -18,7 +18,7 @@ from common import (
     validate_kaggle_metadata,
 )
 
-VALID_TITLE    = "Daily FX: USDJPY"
+VALID_TITLE = "Daily FX: USDJPY"
 VALID_SUBTITLE = "ECB daily USD/JPY cross rates 1999-present, ML-ready features"
 VALID_KEYWORDS = ["finance", "economics", "currencies-and-foreign-exchange"]
 
@@ -45,24 +45,34 @@ class TestValidateKaggleMetadataPasses:
 
     def test_keywords_at_maximum_count(self) -> None:
         kws = [f"tag-{i}" for i in range(KAGGLE_KEYWORDS_MAX)]
-        assert not any("keywords" in e for e in validate_kaggle_metadata(VALID_TITLE, VALID_SUBTITLE, kws))
+        assert not any(
+            "keywords" in e for e in validate_kaggle_metadata(VALID_TITLE, VALID_SUBTITLE, kws)
+        )
 
 
 class TestValidateKaggleMetadataFails:
     def test_title_too_short(self) -> None:
-        errors = validate_kaggle_metadata("A" * (KAGGLE_TITLE_MIN - 1), VALID_SUBTITLE, VALID_KEYWORDS)
+        errors = validate_kaggle_metadata(
+            "A" * (KAGGLE_TITLE_MIN - 1), VALID_SUBTITLE, VALID_KEYWORDS
+        )
         assert any("title" in e for e in errors)
 
     def test_title_too_long(self) -> None:
-        errors = validate_kaggle_metadata("A" * (KAGGLE_TITLE_MAX + 1), VALID_SUBTITLE, VALID_KEYWORDS)
+        errors = validate_kaggle_metadata(
+            "A" * (KAGGLE_TITLE_MAX + 1), VALID_SUBTITLE, VALID_KEYWORDS
+        )
         assert any("title" in e for e in errors)
 
     def test_subtitle_too_short(self) -> None:
-        errors = validate_kaggle_metadata(VALID_TITLE, "A" * (KAGGLE_SUBTITLE_MIN - 1), VALID_KEYWORDS)
+        errors = validate_kaggle_metadata(
+            VALID_TITLE, "A" * (KAGGLE_SUBTITLE_MIN - 1), VALID_KEYWORDS
+        )
         assert any("subtitle" in e for e in errors)
 
     def test_subtitle_too_long(self) -> None:
-        errors = validate_kaggle_metadata(VALID_TITLE, "A" * (KAGGLE_SUBTITLE_MAX + 1), VALID_KEYWORDS)
+        errors = validate_kaggle_metadata(
+            VALID_TITLE, "A" * (KAGGLE_SUBTITLE_MAX + 1), VALID_KEYWORDS
+        )
         assert any("subtitle" in e for e in errors)
 
     def test_too_many_keywords(self) -> None:
@@ -93,8 +103,8 @@ class TestAllPairsSatisfyConstraints:
     def test_no_validation_errors(self, pair: str) -> None:
         base, quote = parse_pair(pair)
         errors = validate_kaggle_metadata(
-            title    = dataset_title(pair),
-            subtitle = make_subtitle(base, quote),
-            keywords = VALID_KEYWORDS,
+            title=dataset_title(pair),
+            subtitle=make_subtitle(base, quote),
+            keywords=VALID_KEYWORDS,
         )
         assert errors == [], f"{pair}: {errors}"

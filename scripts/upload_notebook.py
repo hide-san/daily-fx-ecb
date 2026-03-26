@@ -28,17 +28,17 @@ import shutil
 import sys
 import tempfile
 import time
+from collections.abc import Callable
 from pathlib import Path
 
 from common import (
     NOTEBOOKS_ROOT,
     append_github_summary,
+    modeling_notebook_slug,
+    notebook_slug,
     run_command,
     utils_output_dir,
     utils_slug,
-    notebook_slug,
-    modeling_notebook_slug,
-    KAGGLE_USER,
 )
 
 # ---------------------------------------------------------------------------
@@ -46,17 +46,17 @@ from common import (
 # ---------------------------------------------------------------------------
 
 _METADATA_FILE = {
-    "eda":             "kernel-metadata.json",
-    "modeling":        "kernel-metadata-modeling.json",
+    "eda": "kernel-metadata.json",
+    "modeling": "kernel-metadata-modeling.json",
     "getting-started": "kernel-metadata-getting-started.json",
-    "utils":           "kernel-metadata-utils.json",
+    "utils": "kernel-metadata-utils.json",
 }
 
-_NOTEBOOK_FILE = {
-    "eda":             lambda pair: f"{pair}_eda.ipynb",
-    "modeling":        lambda pair: f"{pair}_modeling.ipynb",
+_NOTEBOOK_FILE: dict[str, Callable[[str], str]] = {
+    "eda": lambda pair: f"{pair}_eda.ipynb",
+    "modeling": lambda pair: f"{pair}_modeling.ipynb",
     "getting-started": lambda pair: f"{pair}_getting_started.ipynb",
-    "utils":           lambda _: "fx_utils.py",
+    "utils": lambda _: "fx_utils.py",
 }
 
 
@@ -64,9 +64,11 @@ _NOTEBOOK_FILE = {
 # Slug resolver
 # ---------------------------------------------------------------------------
 
+
 def _get_slug(pair: str, kind: str) -> str:
     """Return the Kaggle kernel slug for the given pair and kind."""
     from create_getting_started import getting_started_slug
+
     if kind == "eda":
         return notebook_slug(pair)
     elif kind == "modeling":
@@ -80,6 +82,7 @@ def _get_slug(pair: str, kind: str) -> str:
 # ---------------------------------------------------------------------------
 # Wait for kernel to finish
 # ---------------------------------------------------------------------------
+
 
 def wait_for_kernel(
     slug: str,
@@ -117,8 +120,7 @@ def wait_for_kernel(
 
         if time.monotonic() - start > timeout_sec:
             print(
-                f"ERROR: timed out waiting for {slug} to complete "
-                f"(>{timeout_sec}s).",
+                f"ERROR: timed out waiting for {slug} to complete (>{timeout_sec}s).",
                 file=sys.stderr,
             )
             return False
@@ -132,12 +134,10 @@ def wait_for_kernel(
 # Upload logic
 # ---------------------------------------------------------------------------
 
+
 def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
     """Push the notebook/script for the given kind to Kaggle Kernels."""
-    if kind == "utils":
-        notebook_dir = utils_output_dir()
-    else:
-        notebook_dir = NOTEBOOKS_ROOT / pair
+    notebook_dir = utils_output_dir() if kind == "utils" else NOTEBOOKS_ROOT / pair
 
     metadata_src = notebook_dir / _METADATA_FILE[kind]
     notebook_src = notebook_dir / _NOTEBOOK_FILE[kind](pair)
@@ -153,14 +153,19 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        shutil.copy(notebook_src,  tmp_path / notebook_src.name)
-        shutil.copy(metadata_src,  tmp_path / "kernel-metadata.json")
+        shutil.copy(notebook_src, tmp_path / notebook_src.name)
+        shutil.copy(metadata_src, tmp_path / "kernel-metadata.json")
 
         print(f"Files in tmp dir: {list(tmp_path.iterdir())}")
-        result = run_command([
-            "kaggle", "kernels", "push",
-            "--path", str(tmp_path),
-        ])
+        result = run_command(
+            [
+                "kaggle",
+                "kernels",
+                "push",
+                "--path",
+                str(tmp_path),
+            ]
+        )
 
     output = result.stdout + result.stderr
 
@@ -191,30 +196,41 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Push a Kaggle notebook or script for a currency pair."
     )
-    parser.add_argument("--pair",    default="",
-                        help="Pair code, e.g. USDJPY (not required for --kind utils)")
-    parser.add_argument("--kind",
-                        choices=["eda", "modeling", "getting-started", "utils"],
-                        default="eda",
-                        help="Which asset to push (default: eda)")
-    parser.add_argument("--dry-run", action="store_true",
-                        help="Skip the actual push.")
-    parser.add_argument("--poll-sec", type=int, default=30,
-                        help="Polling interval in seconds while waiting for kernel (default: 30)")
-    parser.add_argument("--timeout-sec", type=int, default=600,
-                        help="Max wait time in seconds for kernel completion (default: 600)")
+    parser.add_argument(
+        "--pair", default="", help="Pair code, e.g. USDJPY (not required for --kind utils)"
+    )
+    parser.add_argument(
+        "--kind",
+        choices=["eda", "modeling", "getting-started", "utils"],
+        default="eda",
+        help="Which asset to push (default: eda)",
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Skip the actual push.")
+    parser.add_argument(
+        "--poll-sec",
+        type=int,
+        default=30,
+        help="Polling interval in seconds while waiting for kernel (default: 30)",
+    )
+    parser.add_argument(
+        "--timeout-sec",
+        type=int,
+        default=600,
+        help="Max wait time in seconds for kernel completion (default: 600)",
+    )
     args = parser.parse_args()
 
     if args.kind != "utils" and not args.pair:
         parser.error("--pair is required for --kind eda, modeling, and getting-started")
 
-    pair    = args.pair.upper() if args.pair else "UTILS"
+    pair = args.pair.upper() if args.pair else "UTILS"
     success = push_notebook(pair, kind=args.kind, dry_run=args.dry_run)
-    status  = "success" if success else "FAILED"
+    status = "success" if success else "FAILED"
     append_github_summary(f"| {args.kind} {pair} | {status} |\n")
     sys.exit(0 if success else 1)
 

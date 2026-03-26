@@ -7,7 +7,6 @@ from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
-import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
@@ -29,8 +28,8 @@ def make_df(
     gap_after_index: int | None = None,
 ) -> pd.DataFrame:
     latest = date.today() - timedelta(days=latest_offset_days)
-    dates  = pd.date_range(end=latest, periods=n_rows, freq="B")
-    rates  = np.full(len(dates), 150.0)
+    dates = pd.date_range(end=latest, periods=n_rows, freq="B")
+    rates = np.full(len(dates), 150.0)
 
     if spike_index is not None:
         rates[spike_index] = rates[spike_index - 1] * 1.30
@@ -38,11 +37,11 @@ def make_df(
     df = pd.DataFrame({"date": dates, "rate": rates})
     df.loc[df.index[-1], "date"] = pd.Timestamp(latest)
     df["daily_return_pct"] = df["rate"].pct_change() * 100
-    df["log_return"]       = np.log(df["rate"]).diff()
-    df["ma_7d"]            = df["rate"].rolling(7,  min_periods=1).mean()
-    df["ma_21d"]           = df["rate"].rolling(21, min_periods=1).mean()
-    df["ma_63d"]           = df["rate"].rolling(63, min_periods=1).mean()
-    df["volatility_20d"]   = df["daily_return_pct"].rolling(20, min_periods=1).std()
+    df["log_return"] = np.log(df["rate"]).diff()
+    df["ma_7d"] = df["rate"].rolling(7, min_periods=1).mean()
+    df["ma_21d"] = df["rate"].rolling(21, min_periods=1).mean()
+    df["ma_63d"] = df["rate"].rolling(63, min_periods=1).mean()
+    df["volatility_20d"] = df["daily_return_pct"].rolling(20, min_periods=1).std()
 
     if gap_after_index is not None:
         df.loc[df.index > gap_after_index, "date"] += timedelta(days=8)

@@ -12,6 +12,7 @@ notebooks/<PAIR>/
 
 import argparse
 import json
+from typing import Any
 
 from common import (
     append_github_summary,
@@ -30,14 +31,13 @@ from common import (
 )
 
 
-def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
-    eda_slug     = dataset_slug(pair)
+def build_modeling_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
+    eda_slug = dataset_slug(pair)
     eda_nb_title = notebook_title(pair)
-    eda_nb_slug  = notebook_slug(pair)
-    display      = pair_display(pair)
+    eda_nb_slug = notebook_slug(pair)
+    display = pair_display(pair)
 
     cells = [
-
         md(f"""# {modeling_notebook_title(pair)}
 
 **Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})  
@@ -45,7 +45,6 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 **Pair**    : {display}  
 **Source**  : European Central Bank (ECB) -- free reuse with attribution
 """),
-
         md(f"""---
 
 ### Explore the full Daily FX series
@@ -57,9 +56,7 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 
 ---
 """),
-
         code("""!pip install arch --quiet"""),
-
         code("""import warnings
 warnings.filterwarnings("ignore")
 
@@ -89,7 +86,6 @@ from arch import arch_model
 
 apply_plot_style()
 log = get_logger()"""),
-
         md("## Load data"),
         code(f"""DATA_DIR = find_data_dir("{pair}")
 log.info("DATA_DIR resolved to: %s", DATA_DIR)
@@ -100,7 +96,6 @@ df = df.sort_values("date").reset_index(drop=True)
 returns = df["log_return"].dropna().reset_index(drop=True)
 print_summary("{pair}", df)
 df.tail()"""),
-
         md("""## Stationarity check (ADF test)
 
 ARIMA requires a stationary series.  We test the log return series with the
@@ -116,7 +111,6 @@ if adf_result[1] < 0.05:
     print("Series is stationary (p < 0.05) -- suitable for ARIMA.")
 else:
     print("Series may not be stationary -- consider differencing.")"""),
-
         md("""## ACF / PACF -- choosing ARIMA order
 """),
         code("""fig, axes = plt.subplots(1, 2, figsize=(14, 4))
@@ -124,20 +118,17 @@ plot_acf( returns, lags=30, ax=axes[0], title="ACF  (log returns)")
 plot_pacf(returns, lags=30, ax=axes[1], title="PACF (log returns)", method="ywm")
 plt.tight_layout()
 plt.show()"""),
-
         md("## ARIMA model"),
-        code(f"""TRAIN_CUTOFF = df["date"].max() - pd.DateOffset(years=2)
+        code("""TRAIN_CUTOFF = df["date"].max() - pd.DateOffset(years=2)
 train_returns = returns.iloc[:len(df[df["date"] < TRAIN_CUTOFF])]
 test_returns  = returns.iloc[len(train_returns):]
 
 arima = ARIMA(train_returns, order=(1, 0, 1)).fit()
 print(arima.summary())"""),
-
         code("""fig = arima.plot_diagnostics(figsize=(14, 8))
 plt.suptitle("ARIMA(1,0,1) -- residual diagnostics", y=1.01)
 plt.tight_layout()
 plt.show()"""),
-
         md("## ARIMA 30-day forecast"),
         code(f"""HORIZON = 30
 
@@ -170,7 +161,6 @@ plt.show()
 
 rmse = np.sqrt(((test_returns.values[:HORIZON] - fc_mean.values[:HORIZON]) ** 2).mean())
 print(f"ARIMA RMSE (log returns, {{HORIZON}}-day) : {{rmse:.6f}}")"""),
-
         md("""## GARCH -- volatility clustering
 """),
         code(f"""fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
@@ -184,12 +174,10 @@ axes[1].plot(df["date"], df["volatility_20d"],
 axes[1].set_title("20-day rolling volatility")
 plt.tight_layout()
 plt.show()"""),
-
         md("## GARCH(1,1) fit"),
         code("""returns_pct = train_returns * 100
 garch = arch_model(returns_pct, vol="Garch", p=1, q=1, dist="normal").fit(disp="off")
 print(garch.summary())"""),
-
         code("""cond_vol    = garch.conditional_volatility / 100
 train_dates = df.loc[df["date"] < TRAIN_CUTOFF, "date"].reset_index(drop=True)
 
@@ -206,24 +194,22 @@ ax.set_ylabel("Volatility (log return std)")
 ax.legend()
 plt.tight_layout()
 plt.show()"""),
-
         md("## GARCH volatility forecast (30-day)"),
-        code(f"""garch_fc = garch.forecast(horizon=HORIZON, reindex=False)
+        code("""garch_fc = garch.forecast(horizon=HORIZON, reindex=False)
 fc_vol   = np.sqrt(garch_fc.variance.values[-1]) / 100
 
 fig, ax = plt.subplots(figsize=(10, 4))
 ax.bar(range(1, HORIZON + 1), fc_vol,
        color=COLOR_SIGNAL, alpha=0.7, width=0.7)
-ax.set_title(f"GARCH(1,1) {{HORIZON}}-step volatility forecast")
+ax.set_title(f"GARCH(1,1) {HORIZON}-step volatility forecast")
 ax.set_xlabel("Days ahead")
 ax.set_ylabel("Forecast conditional std (log returns)")
 plt.tight_layout()
 plt.show()
 
-print(f"Day-1 forecast std : {{fc_vol[0]:.6f}}")
-print(f"Day-30 forecast std: {{fc_vol[-1]:.6f}}")"""),
-
-        md(f"""## Summary and next steps
+print(f"Day-1 forecast std : {fc_vol[0]:.6f}")
+print(f"Day-30 forecast std: {fc_vol[-1]:.6f}")"""),
+        md("""## Summary and next steps
 
 | Model | Purpose | Key result |
 |---|---|---|
@@ -254,18 +240,18 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 
 def write_kernel_metadata(pair: str) -> None:
     metadata = {
-        "id":                  modeling_notebook_slug(pair),
-        "title":               modeling_notebook_title(pair),
-        "code_file":           f"{pair}_modeling.ipynb",
-        "language":            "python",
-        "kernel_type":         "notebook",
-        "is_private":          True,
-        "enable_gpu":          False,
-        "enable_internet":     True,
-        "keywords":            ["finance", "economics"],
-        "dataset_sources":     [dataset_slug(pair)],
+        "id": modeling_notebook_slug(pair),
+        "title": modeling_notebook_title(pair),
+        "code_file": f"{pair}_modeling.ipynb",
+        "language": "python",
+        "kernel_type": "notebook",
+        "is_private": True,
+        "enable_gpu": False,
+        "enable_internet": True,
+        "keywords": ["finance", "economics"],
+        "dataset_sources": [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [utils_slug()],
+        "kernel_sources": [utils_slug()],
     }
     output_dir = notebook_output_dir(pair)
     with open(output_dir / "kernel-metadata-modeling.json", "w", encoding="utf-8") as fh:
@@ -277,8 +263,8 @@ def main() -> None:
         description="Generate a Kaggle modeling notebook for one currency pair."
     )
     parser.add_argument("--pair", required=True, help="Pair code, e.g. USDJPY")
-    args        = parser.parse_args()
-    pair        = args.pair.upper()
+    args = parser.parse_args()
+    pair = args.pair.upper()
     base, quote = parse_pair(pair)
 
     output_dir = notebook_output_dir(pair)
@@ -287,7 +273,9 @@ def main() -> None:
     with open(nb_path, "w", encoding="utf-8") as fh:
         json.dump(
             build_modeling_notebook(pair, base, quote),
-            fh, indent=1, ensure_ascii=False,
+            fh,
+            indent=1,
+            ensure_ascii=False,
         )
 
     write_kernel_metadata(pair)

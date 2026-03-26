@@ -25,8 +25,7 @@ def simple_wide() -> pd.DataFrame:
             "JPY": [100.0, 110.0, 120.0, 110.0, 100.0],
             "GBP": [0.8, 0.85, 0.9, 0.85, 0.8],
         },
-        dates=["2024-01-01", "2024-01-02", "2024-01-03",
-               "2024-01-04", "2024-01-05"],
+        dates=["2024-01-01", "2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05"],
     )
 
 
@@ -61,9 +60,17 @@ class TestComputePair:
     def test_required_columns_present(self, simple_wide: pd.DataFrame) -> None:
         df = compute_pair(simple_wide, "USD", "JPY")
         expected = {
-            "date", "rate", "daily_return_pct", "log_return",
-            "ma_7d", "ma_21d", "ma_63d", "volatility_20d",
-            "year", "month", "day_of_week",
+            "date",
+            "rate",
+            "daily_return_pct",
+            "log_return",
+            "ma_7d",
+            "ma_21d",
+            "ma_63d",
+            "volatility_20d",
+            "year",
+            "month",
+            "day_of_week",
         }
         assert expected.issubset(set(df.columns))
 
@@ -106,6 +113,7 @@ class TestWriteDatasetMetadata:
     def test_creates_json_file(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         df = compute_pair(simple_wide, "USD", "JPY")
         import common
+
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
         (tmp_path / "USDJPY").mkdir()
@@ -113,8 +121,11 @@ class TestWriteDatasetMetadata:
         common.DATASETS_ROOT = original
         assert (tmp_path / "USDJPY" / "dataset-metadata.json").exists()
 
-    def test_title_follows_naming_convention(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
+    def test_title_follows_naming_convention(
+        self, tmp_path: Path, simple_wide: pd.DataFrame
+    ) -> None:
         import common
+
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
         (tmp_path / "USDJPY").mkdir()
@@ -127,18 +138,22 @@ class TestWriteDatasetMetadata:
 
     def test_raises_on_invalid_metadata(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common
+
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
         (tmp_path / "USDJPY").mkdir()
         df = compute_pair(simple_wide, "USD", "JPY")
-        with pytest.raises(ValueError, match="Invalid Kaggle metadata"):
-            with pytest.MonkeyPatch.context() as mp:
-                mp.setattr("calc_pair.validate_kaggle_metadata", lambda **_: ["title too long"])
-                write_dataset_metadata("USDJPY", "USD", "JPY", df)
+        with (
+            pytest.raises(ValueError, match="Invalid Kaggle metadata"),
+            pytest.MonkeyPatch.context() as mp,
+        ):
+            mp.setattr("calc_pair.validate_kaggle_metadata", lambda **_: ["title too long"])
+            write_dataset_metadata("USDJPY", "USD", "JPY", df)
         common.DATASETS_ROOT = original
 
     def test_no_is_private_key(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common
+
         original = common.DATASETS_ROOT
         common.DATASETS_ROOT = tmp_path
         (tmp_path / "USDJPY").mkdir()

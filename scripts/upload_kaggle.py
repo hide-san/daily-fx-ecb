@@ -20,7 +20,7 @@ from common import (
 
 
 def upload_dataset(pair: str, dry_run: bool) -> bool:
-    dataset_dir  = DATASETS_ROOT / pair
+    dataset_dir = DATASETS_ROOT / pair
     version_note = f"Daily update: {datetime.utcnow().strftime('%Y-%m-%d')}"
 
     if dry_run:
@@ -33,15 +33,21 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
 
     with tempfile.TemporaryDirectory() as tmp:
         tmp_path = Path(tmp)
-        shutil.copy(dataset_dir / f"{pair}.csv",            tmp_path / f"{pair}.csv")
+        shutil.copy(dataset_dir / f"{pair}.csv", tmp_path / f"{pair}.csv")
         shutil.copy(dataset_dir / "dataset-metadata.json", tmp_path / "dataset-metadata.json")
 
-        result = run_command([
-            "kaggle", "datasets", "create",
-            "--path",     str(tmp_path),
-            "--dir-mode", "zip",
-        ])
-        output    = (result.stdout + result.stderr).lower()
+        result = run_command(
+            [
+                "kaggle",
+                "datasets",
+                "create",
+                "--path",
+                str(tmp_path),
+                "--dir-mode",
+                "zip",
+            ]
+        )
+        output = (result.stdout + result.stderr).lower()
         create_ok = result.returncode == 0 and "error" not in output
 
         if create_ok:
@@ -49,13 +55,20 @@ def upload_dataset(pair: str, dry_run: bool) -> bool:
             return True
 
         print(f"{pair}: dataset exists -- adding new version ...")
-        result     = run_command([
-            "kaggle", "datasets", "version",
-            "--path",     str(tmp_path),
-            "--message",  version_note,
-            "--dir-mode", "zip",
-        ])
-        output     = (result.stdout + result.stderr).lower()
+        result = run_command(
+            [
+                "kaggle",
+                "datasets",
+                "version",
+                "--path",
+                str(tmp_path),
+                "--message",
+                version_note,
+                "--dir-mode",
+                "zip",
+            ]
+        )
+        output = (result.stdout + result.stderr).lower()
         version_ok = result.returncode == 0 and "error" not in output
 
         if version_ok:
@@ -77,7 +90,8 @@ def wait_until_ready(
         return True
 
     from common import dataset_slug
-    slug  = dataset_slug(pair)
+
+    slug = dataset_slug(pair)
     start = time.monotonic()
 
     while True:
@@ -100,13 +114,13 @@ def wait_until_ready(
 
 def main() -> None:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--pair",    required=True)
+    parser.add_argument("--pair", required=True)
     parser.add_argument("--dry-run", action="store_true")
     args = parser.parse_args()
     pair = args.pair.upper()
 
     success = upload_dataset(pair, dry_run=args.dry_run)
-    status  = "uploaded" if success else "upload FAILED"
+    status = "uploaded" if success else "upload FAILED"
     append_github_summary(f"| {pair} dataset | {status} |\n")
     sys.exit(0 if success else 1)
 

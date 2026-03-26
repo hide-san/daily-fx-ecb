@@ -87,7 +87,7 @@ class TestSeriesSearchUrl:
 class TestCurrencyMeta:
     def test_metadata_has_required_keys(self) -> None:
         for ccy, meta in CURRENCY_META.items():
-            assert "name" in meta,    f"{ccy}: 'name' missing"
+            assert "name" in meta, f"{ccy}: 'name' missing"
             assert "country" in meta, f"{ccy}: 'country' missing"
 
     def test_meta_covers_common_currencies(self) -> None:
@@ -148,6 +148,7 @@ class TestSideEffects:
 
     def test_run_command_returns_result(self) -> None:
         import subprocess
+
         mock_result = MagicMock(spec=subprocess.CompletedProcess)
         mock_result.returncode = 0
         mock_result.stdout = "ok"

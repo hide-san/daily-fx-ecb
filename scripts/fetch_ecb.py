@@ -8,7 +8,13 @@ import logging
 from io import StringIO
 
 import pandas as pd
-import requests
+import requests  # type: ignore[import-untyped]
+from common import (
+    ECB_API_URL,
+    ECB_RAW_PATH,
+    ECB_START_DATE,
+    append_github_summary,
+)
 from tenacity import (
     before_sleep_log,
     retry,
@@ -17,20 +23,30 @@ from tenacity import (
     wait_exponential,
 )
 
-from common import (
-    ECB_API_URL,
-    ECB_START_DATE,
-    ECB_RAW_PATH,
-    append_github_summary,
-)
-
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger(__name__)
 
 CURRENCIES = [
-    "USD", "JPY", "GBP", "CHF", "AUD", "CAD", "CNY", "KRW",
-    "HKD", "SGD", "SEK", "NOK", "DKK", "NZD", "MXN", "BRL",
-    "INR", "ZAR", "TRY", "PLN",
+    "USD",
+    "JPY",
+    "GBP",
+    "CHF",
+    "AUD",
+    "CAD",
+    "CNY",
+    "KRW",
+    "HKD",
+    "SGD",
+    "SEK",
+    "NOK",
+    "DKK",
+    "NZD",
+    "MXN",
+    "BRL",
+    "INR",
+    "ZAR",
+    "TRY",
+    "PLN",
 ]
 
 _RETRYABLE_EXCEPTIONS = (
@@ -50,19 +66,17 @@ _retry = retry(
 
 @_retry
 def fetch_raw_csv(currencies: list[str], start: str) -> str:
-    key    = "+".join(currencies)
-    url    = f"{ECB_API_URL}/D.{key}.EUR.SP00.A"
+    key = "+".join(currencies)
+    url = f"{ECB_API_URL}/D.{key}.EUR.SP00.A"
     params = {"startPeriod": start, "format": "csvdata"}
 
     log.info(f"Requesting ECB data for {len(currencies)} currencies ...")
     response = requests.get(url, params=params, timeout=60)
 
-    if response.status_code >= 500:
-        response.raise_for_status()
-    elif not response.ok:
+    if response.status_code >= 500 or not response.ok:
         response.raise_for_status()
 
-    return response.text
+    return str(response.text)
 
 
 def parse_ecb_csv(raw_csv: str) -> pd.DataFrame:
@@ -70,25 +84,24 @@ def parse_ecb_csv(raw_csv: str) -> pd.DataFrame:
     df = (
         df[["TIME_PERIOD", "CURRENCY", "OBS_VALUE"]]
         .copy()
-        .rename(columns={
-            "TIME_PERIOD": "date",
-            "CURRENCY":    "currency",
-            "OBS_VALUE":   "rate_vs_eur",
-        })
+        .rename(
+            columns={
+                "TIME_PERIOD": "date",
+                "CURRENCY": "currency",
+                "OBS_VALUE": "rate_vs_eur",
+            }
+        )
     )
-    df["date"]        = pd.to_datetime(df["date"])
+    df["date"] = pd.to_datetime(df["date"])
     df["rate_vs_eur"] = pd.to_numeric(df["rate_vs_eur"], errors="coerce")
     return (
-        df
-        .dropna(subset=["rate_vs_eur"])
-        .sort_values(["currency", "date"])
-        .reset_index(drop=True)
+        df.dropna(subset=["rate_vs_eur"]).sort_values(["currency", "date"]).reset_index(drop=True)
     )
 
 
 def main() -> None:
     raw_csv = fetch_raw_csv(CURRENCIES, ECB_START_DATE)
-    df      = parse_ecb_csv(raw_csv)
+    df = parse_ecb_csv(raw_csv)
 
     ECB_RAW_PATH.parent.mkdir(parents=True, exist_ok=True)
     df.to_csv(ECB_RAW_PATH, index=False)

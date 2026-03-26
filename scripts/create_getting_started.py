@@ -12,6 +12,7 @@ notebooks/<PAIR>/
 
 import argparse
 import json
+from typing import Any
 
 from common import (
     KAGGLE_USER,
@@ -30,6 +31,7 @@ from common import (
 # Kaggle kernel slug / title helpers (Getting Started variant)
 # ---------------------------------------------------------------------------
 
+
 def getting_started_slug(pair: str) -> str:
     base, quote = parse_pair(pair)
     return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-getting-started"
@@ -43,13 +45,13 @@ def getting_started_title(pair: str) -> str:
 # Notebook content
 # ---------------------------------------------------------------------------
 
-def build_getting_started_notebook(pair: str, base: str, quote: str) -> dict:
-    slug     = dataset_slug(pair)
+
+def build_getting_started_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
+    slug = dataset_slug(pair)
     csv_file = f"{pair}.csv"
-    display  = pair_display(pair)
+    display = pair_display(pair)
 
     cells = [
-
         # ------------------------------------------------------------------ #
         # Title & intro
         # ------------------------------------------------------------------ #
@@ -67,7 +69,6 @@ In just a few cells you will:
 **Source**: European Central Bank (ECB) -- free reuse with attribution  
 **Pair**: {display}
 """),
-
         # ------------------------------------------------------------------ #
         # Series navigation
         # ------------------------------------------------------------------ #
@@ -82,7 +83,6 @@ In just a few cells you will:
 
 ---
 """),
-
         # ------------------------------------------------------------------ #
         # Imports
         # ------------------------------------------------------------------ #
@@ -102,7 +102,6 @@ from daily_fx_utils import (
 apply_plot_style()
 log = get_logger()
 print("Libraries loaded successfully.")"""),
-
         # ------------------------------------------------------------------ #
         # Load data
         # ------------------------------------------------------------------ #
@@ -118,10 +117,8 @@ print(f"Columns : {{list(df.columns)}}")
 print(f"Period  : {{df['date'].min().date()}} -> {{df['date'].max().date()}}")
 print()
 df.head()"""),
-
         code("""# Last 5 rows -- confirm the data is up to date
 df.tail()"""),
-
         # ------------------------------------------------------------------ #
         # Plot 1 -- full history
         # ------------------------------------------------------------------ #
@@ -140,7 +137,6 @@ fig.autofmt_xdate(rotation=0, ha="center")
 
 plt.tight_layout()
 plt.show()"""),
-
         # ------------------------------------------------------------------ #
         # Next steps
         # ------------------------------------------------------------------ #
@@ -181,20 +177,21 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 # Kaggle kernel metadata
 # ---------------------------------------------------------------------------
 
+
 def write_kernel_metadata(pair: str) -> None:
     metadata = {
-        "id":                  getting_started_slug(pair),
-        "title":               getting_started_title(pair),
-        "code_file":           f"{pair}_getting_started.ipynb",
-        "language":            "python",
-        "kernel_type":         "notebook",
-        "is_private":          True,
-        "enable_gpu":          False,
-        "enable_internet":     False,
-        "keywords":            ["finance", "economics"],
-        "dataset_sources":     [dataset_slug(pair)],
+        "id": getting_started_slug(pair),
+        "title": getting_started_title(pair),
+        "code_file": f"{pair}_getting_started.ipynb",
+        "language": "python",
+        "kernel_type": "notebook",
+        "is_private": True,
+        "enable_gpu": False,
+        "enable_internet": False,
+        "keywords": ["finance", "economics"],
+        "dataset_sources": [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [utils_slug()],
+        "kernel_sources": [utils_slug()],
     }
     output_dir = notebook_output_dir(pair)
     with open(output_dir / "kernel-metadata-getting-started.json", "w", encoding="utf-8") as fh:
@@ -205,13 +202,14 @@ def write_kernel_metadata(pair: str) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate a beginner Getting Started notebook for one currency pair."
     )
     parser.add_argument("--pair", required=True, help="Pair code, e.g. USDJPY")
-    args        = parser.parse_args()
-    pair        = args.pair.upper()
+    args = parser.parse_args()
+    pair = args.pair.upper()
     base, quote = parse_pair(pair)
 
     output_dir = notebook_output_dir(pair)
@@ -220,7 +218,9 @@ def main() -> None:
     with open(nb_path, "w", encoding="utf-8") as fh:
         json.dump(
             build_getting_started_notebook(pair, base, quote),
-            fh, indent=1, ensure_ascii=False,
+            fh,
+            indent=1,
+            ensure_ascii=False,
         )
 
     write_kernel_metadata(pair)

@@ -12,6 +12,7 @@ notebooks/<PAIR>/
 
 import argparse
 import json
+from typing import Any
 
 from common import (
     append_github_summary,
@@ -31,20 +32,19 @@ from common import (
 # Notebook content
 # ---------------------------------------------------------------------------
 
-def build_notebook(pair: str, base: str, quote: str) -> dict:
-    slug     = dataset_slug(pair)
+
+def build_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
+    slug = dataset_slug(pair)
     csv_file = f"{pair}.csv"
-    display  = pair_display(pair)
+    display = pair_display(pair)
 
     cells = [
-
         md(f"""# {notebook_title(pair)}
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
 **Source**: European Central Bank (ECB) -- free reuse with attribution  
 **Pair**: {display}
 """),
-
         md(f"""---
 
 ### Explore the full Daily FX series
@@ -56,7 +56,6 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
 
 ---
 """),
-
         code("""import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -78,7 +77,6 @@ from daily_fx_utils import (
 
 apply_plot_style()
 log = get_logger()"""),
-
         code(f"""DATA_DIR = find_data_dir("{pair}")
 log.info("DATA_DIR resolved to: %s", DATA_DIR)
 
@@ -86,7 +84,6 @@ df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
 df = df.sort_values("date").reset_index(drop=True)
 print_summary("{pair}", df)
 df.tail()"""),
-
         md("## Time series"),
         code(f"""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
@@ -96,7 +93,6 @@ ax.xaxis.set_major_locator(mdates.YearLocator(5))
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 plt.tight_layout()
 plt.show()"""),
-
         md("## Moving averages"),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"],   linewidth=0.6, color=COLOR_MUTED,  label="spot")
@@ -106,7 +102,6 @@ ax.set_title("Spot rate with moving averages")
 ax.legend()
 plt.tight_layout()
 plt.show()"""),
-
         md("## Daily return distribution"),
         code("""returns = df["daily_return_pct"].dropna()
 
@@ -126,7 +121,6 @@ print(f"Mean : {returns.mean():.4f}%")
 print(f"Std  : {returns.std():.4f}%")
 print(f"Skew : {returns.skew():.4f}")
 print(f"Kurt : {returns.kurtosis():.4f}")"""),
-
         md("## Rolling volatility (20-day)"),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=COLOR_SIGNAL)
@@ -135,13 +129,12 @@ ax.set_title("20-day rolling volatility of daily returns")
 ax.set_ylabel("Std of daily return (%)")
 plt.tight_layout()
 plt.show()"""),
-
         md("""## Rolling-mean forecast baseline
 
 Predict tomorrow's rate as the 21-day rolling mean.
 This establishes a benchmark RMSE to beat with more sophisticated models.
 """),
-        code(f"""cutoff = df["date"].max() - pd.DateOffset(years=2)
+        code("""cutoff = df["date"].max() - pd.DateOffset(years=2)
 test   = df[df["date"] >= cutoff].copy()
 
 df["pred_rolling"] = df["rate"].shift(1).rolling(21, min_periods=1).mean()
@@ -149,8 +142,8 @@ test_pred = df.loc[df["date"] >= cutoff, "pred_rolling"]
 
 rmse = np.sqrt(((test["rate"].values - test_pred.values) ** 2).mean())
 mae  = np.abs(test["rate"].values - test_pred.values).mean()
-print(f"Baseline RMSE : {{rmse:.6f}}")
-print(f"Baseline MAE  : {{mae:.6f}}")
+print(f"Baseline RMSE : {rmse:.6f}")
+print(f"Baseline MAE  : {mae:.6f}")
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(test["date"], test["rate"],  linewidth=1.0, color=COLOR_RATE,   label="actual")
@@ -160,8 +153,7 @@ ax.set_title("Actual vs rolling-mean forecast (last 2 years)")
 ax.legend()
 plt.tight_layout()
 plt.show()"""),
-
-        md(f"""## Next steps
+        md("""## Next steps
 
 - **ARIMA / SARIMA** -- capture autocorrelation in the return series
 - **GARCH** -- model time-varying volatility
@@ -194,20 +186,21 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 # Kaggle kernel metadata
 # ---------------------------------------------------------------------------
 
+
 def write_kernel_metadata(pair: str) -> None:
     metadata = {
-        "id":                  notebook_slug(pair),
-        "title":               notebook_title(pair),
-        "code_file":           f"{pair}_eda.ipynb",
-        "language":            "python",
-        "kernel_type":         "notebook",
-        "is_private":          True,
-        "enable_gpu":          False,
-        "enable_internet":     False,
-        "keywords":            ["finance", "economics"],
-        "dataset_sources":     [dataset_slug(pair)],
+        "id": notebook_slug(pair),
+        "title": notebook_title(pair),
+        "code_file": f"{pair}_eda.ipynb",
+        "language": "python",
+        "kernel_type": "notebook",
+        "is_private": True,
+        "enable_gpu": False,
+        "enable_internet": False,
+        "keywords": ["finance", "economics"],
+        "dataset_sources": [dataset_slug(pair)],
         "competition_sources": [],
-        "kernel_sources":      [utils_slug()],
+        "kernel_sources": [utils_slug()],
     }
     output_dir = notebook_output_dir(pair)
     with open(output_dir / "kernel-metadata.json", "w", encoding="utf-8") as fh:
@@ -218,13 +211,14 @@ def write_kernel_metadata(pair: str) -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Generate a Kaggle EDA notebook for one currency pair."
     )
     parser.add_argument("--pair", required=True, help="Pair code, e.g. USDJPY")
-    args        = parser.parse_args()
-    pair        = args.pair.upper()
+    args = parser.parse_args()
+    pair = args.pair.upper()
     base, quote = parse_pair(pair)
 
     output_dir = notebook_output_dir(pair)

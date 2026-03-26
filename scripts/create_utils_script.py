@@ -189,21 +189,22 @@ def print_summary(pair: str, df: object) -> None:
 # Kaggle kernel metadata
 # ---------------------------------------------------------------------------
 
+
 def write_kernel_metadata() -> None:
     metadata = {
-        "id":                  utils_slug(),
-        "title":               UTILS_KERNEL_TITLE,
-        "code_file":           "fx_utils.py",
-        "language":            "python",
-        "kernel_type":         "script",
-        "util-script":         True,
-        "is_private":          True,
-        "enable_gpu":          False,
-        "enable_internet":     False,
-        "keywords":            ["finance", "economics"],
-        "dataset_sources":     [],
+        "id": utils_slug(),
+        "title": UTILS_KERNEL_TITLE,
+        "code_file": "fx_utils.py",
+        "language": "python",
+        "kernel_type": "script",
+        "util-script": True,
+        "is_private": True,
+        "enable_gpu": False,
+        "enable_internet": False,
+        "keywords": ["finance", "economics"],
+        "dataset_sources": [],
         "competition_sources": [],
-        "kernel_sources":      [],
+        "kernel_sources": [],
     }
     output_dir = utils_output_dir()
     with open(output_dir / "kernel-metadata-utils.json", "w", encoding="utf-8") as fh:
@@ -214,8 +215,9 @@ def write_kernel_metadata() -> None:
 # Entry point
 # ---------------------------------------------------------------------------
 
+
 def main() -> None:
-    output_dir  = utils_output_dir()
+    output_dir = utils_output_dir()
     script_path = output_dir / "fx_utils.py"
     script_path.write_text(FX_UTILS_SOURCE, encoding="utf-8")
 

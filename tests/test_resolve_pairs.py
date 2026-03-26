@@ -1,10 +1,9 @@
 """tests/test_resolve_pairs.py"""
 
+import os
 import sys
 from pathlib import Path
 from unittest.mock import patch
-
-import pytest
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
@@ -94,11 +93,7 @@ class TestLoadAvailableCurrencies:
 
     def test_deduplicates_currencies(self, tmp_path: Path) -> None:
         csv = tmp_path / "all_currencies.csv"
-        csv.write_text(
-            "date,currency,rate_vs_eur\n"
-            "2024-01-01,USD,1.1\n"
-            "2024-01-02,USD,1.2\n"
-        )
+        csv.write_text("date,currency,rate_vs_eur\n2024-01-01,USD,1.1\n2024-01-02,USD,1.2\n")
         with patch("resolve_pairs.ECB_RAW_PATH", csv):
             currencies = load_available_currencies()
         assert currencies.count("USD") == 1
@@ -121,3 +116,42 @@ class TestFilterValidPairs:
 
     def test_empty_input(self) -> None:
         assert filter_valid_pairs([], self.valid) == []
+
+
+class TestMain:
+    def test_main_with_pairs_arg_writes_output(self, tmp_path: Path) -> None:
+        import resolve_pairs
+
+        output = tmp_path / "github_output.txt"
+        output.touch()
+        summary = tmp_path / "summary.md"
+        with (
+            patch("sys.argv", ["resolve_pairs.py", "--pairs", "USDJPY"]),
+            patch.dict(
+                os.environ,
+                {"GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary)},
+            ),
+        ):
+            resolve_pairs.main()
+        content = output.read_text()
+        assert "USDJPY" in content
+        assert "pair_count=1" in content
+
+    def test_main_with_pairs_file(self, tmp_path: Path) -> None:
+        import resolve_pairs
+
+        pairs_file = tmp_path / "pairs.txt"
+        pairs_file.write_text("USDJPY\n")
+        output = tmp_path / "github_output.txt"
+        output.touch()
+        summary = tmp_path / "summary.md"
+        with (
+            patch("sys.argv", ["resolve_pairs.py"]),
+            patch("resolve_pairs.PAIRS_FILE", pairs_file),
+            patch.dict(
+                os.environ,
+                {"GITHUB_OUTPUT": str(output), "GITHUB_STEP_SUMMARY": str(summary)},
+            ),
+        ):
+            resolve_pairs.main()
+        assert "USDJPY" in output.read_text()

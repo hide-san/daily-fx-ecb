@@ -9,27 +9,31 @@ import sys
 from datetime import date
 
 import pandas as pd
-
 from common import (
     DATASETS_ROOT,
     append_github_summary,
     emit_github_warning,
 )
 
-MIN_ROWS              = 1_000
-MAX_RETURN_PCT        = 20.0
+MIN_ROWS = 1_000
+MAX_RETURN_PCT = 20.0
 MAX_GAP_CALENDAR_DAYS = 7
-FRESHNESS_LAG_DAYS    = 5
+FRESHNESS_LAG_DAYS = 5
 
 FEATURE_COLUMNS = [
-    "rate", "daily_return_pct", "log_return",
-    "ma_7d", "ma_21d", "ma_63d", "volatility_20d",
+    "rate",
+    "daily_return_pct",
+    "log_return",
+    "ma_7d",
+    "ma_21d",
+    "ma_63d",
+    "volatility_20d",
 ]
 
 
 def check_freshness(df: pd.DataFrame) -> list[str]:
     latest = df["date"].max().date()
-    lag    = (date.today() - latest).days
+    lag = (date.today() - latest).days
     if lag > FRESHNESS_LAG_DAYS:
         return [f"Stale data: latest date is {latest} ({lag} days ago, limit {FRESHNESS_LAG_DAYS})"]
     return []
@@ -42,10 +46,10 @@ def check_minimum_rows(df: pd.DataFrame) -> list[str]:
 
 
 def check_no_unexpected_gap(df: pd.DataFrame) -> list[str]:
-    cutoff  = df["date"].max() - pd.Timedelta(days=30)
-    recent  = df[df["date"] >= cutoff].sort_values("date")
-    deltas  = recent["date"].diff().dropna()
-    large   = deltas[deltas > pd.Timedelta(days=MAX_GAP_CALENDAR_DAYS)]
+    cutoff = df["date"].max() - pd.Timedelta(days=30)
+    recent = df[df["date"] >= cutoff].sort_values("date")
+    deltas = recent["date"].diff().dropna()
+    large = deltas[deltas > pd.Timedelta(days=MAX_GAP_CALENDAR_DAYS)]
     if not large.empty:
         return [f"Unexpected gap in last 30 days: {large.max().days} calendar days"]
     return []
@@ -53,10 +57,10 @@ def check_no_unexpected_gap(df: pd.DataFrame) -> list[str]:
 
 def check_spike_guard(df: pd.DataFrame) -> list[str]:
     returns = df["daily_return_pct"].dropna()
-    spikes  = returns[returns.abs() > MAX_RETURN_PCT]
+    spikes = returns[returns.abs() > MAX_RETURN_PCT]
     if not spikes.empty:
-        worst      = spikes.abs().max()
-        worst_date = df.loc[spikes.abs().idxmax(), "date"].date()
+        worst = spikes.abs().max()
+        worst_date = pd.Timestamp(str(df.loc[spikes.abs().idxmax(), "date"])).date()
         return [f"Implausible spike: {worst:.2f}% on {worst_date} (limit +-{MAX_RETURN_PCT}%)"]
     return []
 
@@ -83,7 +87,7 @@ def run_checks(pair: str) -> tuple[bool, list[str]]:
     if not csv_path.exists():
         return False, [f"{csv_path} not found -- did calc_pair.py run?"]
 
-    df     = pd.read_csv(csv_path, parse_dates=["date"])
+    df = pd.read_csv(csv_path, parse_dates=["date"])
     errors = []
     for check in ALL_CHECKS:
         errors.extend(check(df))
@@ -104,8 +108,8 @@ def run_checks(pair: str) -> tuple[bool, list[str]]:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--pair", required=True)
-    args        = parser.parse_args()
-    pair        = args.pair.upper()
+    args = parser.parse_args()
+    pair = args.pair.upper()
 
     passed, errors = run_checks(pair)
 

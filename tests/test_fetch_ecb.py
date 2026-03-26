@@ -17,12 +17,9 @@ from fetch_ecb import fetch_raw_csv, parse_ecb_csv
 def make_response(status_code: int, text: str = "") -> MagicMock:
     r = MagicMock(spec=requests.Response)
     r.status_code = status_code
-    r.ok          = status_code < 400
-    r.text        = text
-    r.raise_for_status.side_effect = (
-        None if status_code < 400
-        else requests.HTTPError(response=r)
-    )
+    r.ok = status_code < 400
+    r.text = text
+    r.raise_for_status.side_effect = None if status_code < 400 else requests.HTTPError(response=r)
     return r
 
 
@@ -67,14 +64,18 @@ class TestFetchRawCsvRetry:
 
     def test_raises_immediately_on_400(self) -> None:
         bad_request = make_response(400)
-        with patch("fetch_ecb.requests.get", return_value=bad_request):
-            with pytest.raises(requests.HTTPError):
-                fetch_raw_csv(["USD"], "1999-01-01")
+        with (
+            patch("fetch_ecb.requests.get", return_value=bad_request),
+            pytest.raises(requests.HTTPError),
+        ):
+            fetch_raw_csv(["USD"], "1999-01-01")
 
     def test_raises_after_max_attempts(self) -> None:
-        with patch("fetch_ecb.requests.get", side_effect=requests.Timeout()):
-            with pytest.raises(requests.Timeout):
-                fetch_raw_csv(["USD"], "1999-01-01")
+        with (
+            patch("fetch_ecb.requests.get", side_effect=requests.Timeout()),
+            pytest.raises(requests.Timeout),
+        ):
+            fetch_raw_csv(["USD"], "1999-01-01")
 
 
 class TestParseEcbCsv:
@@ -98,29 +99,26 @@ class TestParseEcbCsv:
 
 class TestFetchEcbMain:
     def test_main_saves_csv(self, tmp_path: Path) -> None:
-        mock_csv = (
-            "TIME_PERIOD,CURRENCY,OBS_VALUE\n"
-            "2024-01-01,USD,1.1\n"
-            "2024-01-01,JPY,130.0\n"
-        )
+        mock_csv = "TIME_PERIOD,CURRENCY,OBS_VALUE\n2024-01-01,USD,1.1\n2024-01-01,JPY,130.0\n"
         csv_path = tmp_path / "all_currencies.csv"
-        with patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv), \
-             patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path), \
-             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}):
+        with (
+            patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv),
+            patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path),
+            patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}),
+        ):
             fetch_ecb.main()
         assert csv_path.exists()
 
     def test_main_csv_contains_currencies(self, tmp_path: Path) -> None:
-        mock_csv = (
-            "TIME_PERIOD,CURRENCY,OBS_VALUE\n"
-            "2024-01-01,USD,1.1\n"
-            "2024-01-01,JPY,130.0\n"
-        )
+        mock_csv = "TIME_PERIOD,CURRENCY,OBS_VALUE\n2024-01-01,USD,1.1\n2024-01-01,JPY,130.0\n"
         csv_path = tmp_path / "all_currencies.csv"
-        with patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv), \
-             patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path), \
-             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}):
+        with (
+            patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv),
+            patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path),
+            patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}),
+        ):
             fetch_ecb.main()
         import pandas as pd
+
         df = pd.read_csv(csv_path)
         assert set(df["currency"].unique()) == {"USD", "JPY"}
