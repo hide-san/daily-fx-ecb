@@ -40,9 +40,9 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 
         md(f"""# {modeling_notebook_title(pair)}
 
-**Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})
-**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})
-**Pair**    : {display}
+**Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})  
+**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})  
+**Pair**    : {display}  
 **Source**  : European Central Bank (ECB) -- free reuse with attribution
 """),
 

@@ -40,8 +40,8 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
 
         md(f"""# {notebook_title(pair)}
 
-**Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})
-**Source**: European Central Bank (ECB) -- free reuse with attribution
+**Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
+**Source**: European Central Bank (ECB) -- free reuse with attribution  
 **Pair**: {display}
 """),
 
