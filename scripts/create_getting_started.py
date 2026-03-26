@@ -3,10 +3,6 @@ scripts/create_getting_started.py  --pair <BASEQUOTE>
 ======================================================
 Generate a beginner-friendly "Getting Started" notebook for one pair.
 
-This notebook is intentionally minimal: it loads the dataset and produces
-a few simple plots so that newcomers can confirm the data is working and
-see what it looks like right away -- no modelling, no statistics.
-
 Output
 ------
 notebooks/<PAIR>/
@@ -18,11 +14,13 @@ import argparse
 import json
 
 from common import (
+    KAGGLE_USER,
     append_github_summary,
     code,
     dataset_slug,
     md,
     notebook_output_dir,
+    pair_display,
     parse_pair,
     series_search_url,
     utils_slug,
@@ -33,12 +31,12 @@ from common import (
 # ---------------------------------------------------------------------------
 
 def getting_started_slug(pair: str) -> str:
-    from common import KAGGLE_USER
-    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-getting-started"
+    base, quote = parse_pair(pair)
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-getting-started"
 
 
 def getting_started_title(pair: str) -> str:
-    return f"Daily FX: {pair} - Getting Started"
+    return f"Daily FX: {pair_display(pair)} - Getting Started"
 
 
 # ---------------------------------------------------------------------------
@@ -48,17 +46,17 @@ def getting_started_title(pair: str) -> str:
 def build_getting_started_notebook(pair: str, base: str, quote: str) -> dict:
     slug     = dataset_slug(pair)
     csv_file = f"{pair}.csv"
+    display  = pair_display(pair)
 
     cells = [
 
         # ------------------------------------------------------------------ #
         # Title & intro
         # ------------------------------------------------------------------ #
-        md(f"""\
-# {getting_started_title(pair)}
+        md(f"""# {getting_started_title(pair)}
 
 Welcome! This is the quickest way to get up and running with the
-**{base}/{quote}** daily exchange-rate dataset.
+**{display}** daily exchange-rate dataset.
 
 In just a few cells you will:
 1. Load the CSV into a pandas DataFrame
@@ -67,14 +65,13 @@ In just a few cells you will:
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})  
 **Source**: European Central Bank (ECB) -- free reuse with attribution  
-**Pair**: {base} / {quote}
+**Pair**: {display}
 """),
 
         # ------------------------------------------------------------------ #
         # Series navigation
         # ------------------------------------------------------------------ #
-        md(f"""\
----
+        md(f"""---
 
 ### Explore the full Daily FX series
 
@@ -90,8 +87,7 @@ In just a few cells you will:
         # Imports
         # ------------------------------------------------------------------ #
         md("## 1. Imports"),
-        code("""\
-import pandas as pd
+        code("""import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
@@ -111,8 +107,7 @@ print("Libraries loaded successfully.")"""),
         # Load data
         # ------------------------------------------------------------------ #
         md("## 2. Load the data"),
-        code(f"""\
-DATA_DIR = find_data_dir("{pair}")
+        code(f"""DATA_DIR = find_data_dir("{pair}")
 log.info("DATA_DIR: %s", DATA_DIR)
 
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
@@ -124,20 +119,18 @@ print(f"Period  : {{df['date'].min().date()}} -> {{df['date'].max().date()}}")
 print()
 df.head()"""),
 
-        code("""\
-# Last 5 rows -- confirm the data is up to date
+        code("""# Last 5 rows -- confirm the data is up to date
 df.tail()"""),
 
         # ------------------------------------------------------------------ #
         # Plot 1 -- full history
         # ------------------------------------------------------------------ #
         md("## 3. Full rate history"),
-        code(f"""\
-fig, ax = plt.subplots(figsize=(12, 4))
+        code(f"""fig, ax = plt.subplots(figsize=(12, 4))
 
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
 
-ax.set_title("{pair} daily spot rate - full history (ECB reference)")
+ax.set_title("{display} daily spot rate - full history (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.set_xlabel("")
 
@@ -151,8 +144,7 @@ plt.show()"""),
         # ------------------------------------------------------------------ #
         # Next steps
         # ------------------------------------------------------------------ #
-        md(f"""\
-## 4. What's next?
+        md(f"""## 4. What's next?
 
 You've confirmed the data loads and plots correctly. Here are a few natural next steps:
 
