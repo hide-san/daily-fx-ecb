@@ -26,9 +26,10 @@ on:
       pairs:
         description: >
           Comma-separated pair codes (e.g. USDJPY,EURUSD).
-          Leave blank to use pairs.txt.
+          Leave blank to process all pairs from pairs.txt.
+          For a quick test, enter: NZDJPY
         required: false
-        default: "NZDJPY"
+        default: ""
 
       upload_concurrency:
         description: "Max parallel notebook pushes per kind (1-5)."
