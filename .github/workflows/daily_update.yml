@@ -11,7 +11,7 @@ on:
           Comma-separated pair codes to process (e.g. USDJPY,EURUSD,GBPJPY).
           Leave blank to process all combinations (max 256 per GitHub limit).
         required: false
-        default: ""
+        default: "NZDJPY"
 
       upload_concurrency:
         description: "Max parallel Kaggle uploads (1-5)."
@@ -72,8 +72,7 @@ jobs:
   # ---------------------------------------------------------------------------
   # Cover image generation (independent from the main pipeline).
   # continue-on-error: true means a failure here does not fail the overall
-  # workflow. Runs in parallel with calc-and-upload because it declares no
-  # `needs` dependency on that job.
+  # workflow. Runs in parallel with calc-and-upload.
   # ---------------------------------------------------------------------------
   generate-cover:
     name: "${{ matrix.pair }}: Cover Image"
