@@ -21,6 +21,7 @@ from common import (
     notebook_output_dir,
     notebook_slug,
     notebook_title,
+    pair_display,
     parse_pair,
     series_search_url,
     utils_slug,
@@ -33,19 +34,18 @@ from common import (
 def build_notebook(pair: str, base: str, quote: str) -> dict:
     slug     = dataset_slug(pair)
     csv_file = f"{pair}.csv"
+    display  = pair_display(pair)
 
     cells = [
 
-        md(f"""\
-# {notebook_title(pair)}
+        md(f"""# {notebook_title(pair)}
 
 **Dataset**: [{slug}](https://www.kaggle.com/datasets/{slug})
 **Source**: European Central Bank (ECB) -- free reuse with attribution
-**Pair**: {base} / {quote}
+**Pair**: {display}
 """),
 
-        md(f"""\
----
+        md(f"""---
 
 ### Explore the full Daily FX series
 
@@ -57,8 +57,7 @@ def build_notebook(pair: str, base: str, quote: str) -> dict:
 ---
 """),
 
-        code("""\
-import numpy as np
+        code("""import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
@@ -80,8 +79,7 @@ from daily_fx_utils import (
 apply_plot_style()
 log = get_logger()"""),
 
-        code(f"""\
-DATA_DIR = find_data_dir("{pair}")
+        code(f"""DATA_DIR = find_data_dir("{pair}")
 log.info("DATA_DIR resolved to: %s", DATA_DIR)
 
 df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
@@ -90,10 +88,9 @@ print_summary("{pair}", df)
 df.tail()"""),
 
         md("## Time series"),
-        code(f"""\
-fig, ax = plt.subplots(figsize=(12, 4))
+        code(f"""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
-ax.set_title("{pair} spot rate (ECB reference)")
+ax.set_title("{display} spot rate (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.xaxis.set_major_locator(mdates.YearLocator(5))
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
@@ -101,8 +98,7 @@ plt.tight_layout()
 plt.show()"""),
 
         md("## Moving averages"),
-        code("""\
-fig, ax = plt.subplots(figsize=(12, 4))
+        code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"],   linewidth=0.6, color=COLOR_MUTED,  label="spot")
 ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color=COLOR_RATE,   label="21-day MA")
 ax.plot(df["date"], df["ma_63d"], linewidth=1.4, color=COLOR_SIGNAL, label="63-day MA")
@@ -112,8 +108,7 @@ plt.tight_layout()
 plt.show()"""),
 
         md("## Daily return distribution"),
-        code("""\
-returns = df["daily_return_pct"].dropna()
+        code("""returns = df["daily_return_pct"].dropna()
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
 axes[0].hist(returns, bins=80, color=COLOR_RATE, edgecolor="white", linewidth=0.3)
@@ -133,8 +128,7 @@ print(f"Skew : {returns.skew():.4f}")
 print(f"Kurt : {returns.kurtosis():.4f}")"""),
 
         md("## Rolling volatility (20-day)"),
-        code("""\
-fig, ax = plt.subplots(figsize=(12, 4))
+        code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=COLOR_SIGNAL)
 ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color=COLOR_SIGNAL)
 ax.set_title("20-day rolling volatility of daily returns")
@@ -142,14 +136,12 @@ ax.set_ylabel("Std of daily return (%)")
 plt.tight_layout()
 plt.show()"""),
 
-        md("""\
-## Rolling-mean forecast baseline
+        md("""## Rolling-mean forecast baseline
 
-Predict tomorrow\'s rate as the 21-day rolling mean.
+Predict tomorrow's rate as the 21-day rolling mean.
 This establishes a benchmark RMSE to beat with more sophisticated models.
 """),
-        code("""\
-cutoff = df["date"].max() - pd.DateOffset(years=2)
+        code(f"""cutoff = df["date"].max() - pd.DateOffset(years=2)
 test   = df[df["date"] >= cutoff].copy()
 
 df["pred_rolling"] = df["rate"].shift(1).rolling(21, min_periods=1).mean()
@@ -157,8 +149,8 @@ test_pred = df.loc[df["date"] >= cutoff, "pred_rolling"]
 
 rmse = np.sqrt(((test["rate"].values - test_pred.values) ** 2).mean())
 mae  = np.abs(test["rate"].values - test_pred.values).mean()
-print(f"Baseline RMSE : {rmse:.6f}")
-print(f"Baseline MAE  : {mae:.6f}")
+print(f"Baseline RMSE : {{rmse:.6f}}")
+print(f"Baseline MAE  : {{mae:.6f}}")
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(test["date"], test["rate"],  linewidth=1.0, color=COLOR_RATE,   label="actual")
@@ -169,8 +161,7 @@ ax.legend()
 plt.tight_layout()
 plt.show()"""),
 
-        md("""\
-## Next steps
+        md(f"""## Next steps
 
 - **ARIMA / SARIMA** -- capture autocorrelation in the return series
 - **GARCH** -- model time-varying volatility
