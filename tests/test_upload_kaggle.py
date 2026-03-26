@@ -48,6 +48,19 @@ class TestVersionUpdate:
             assert upload_dataset("USDJPY", dry_run=False) is False
 
 
+class TestVersionPath:
+    def test_version_update_success_returns_true(self, tmp_path: Path) -> None:
+        pair_dir = tmp_path / "USDJPY"
+        pair_dir.mkdir()
+        (pair_dir / "USDJPY.csv").touch()
+        (pair_dir / "dataset-metadata.json").write_text("{}")
+        create_fail = make_result(1, stderr="already exists")
+        version_ok  = make_result(0)
+        with patch("upload_kaggle.DATASETS_ROOT", tmp_path), \
+             patch("upload_kaggle.run_command", side_effect=[create_fail, version_ok]):
+            assert upload_dataset("USDJPY", dry_run=False) is True
+
+
 class TestMissingDirectory:
     def test_returns_false_when_dir_missing(self, tmp_path: Path) -> None:
         with patch("upload_kaggle.DATASETS_ROOT", tmp_path):

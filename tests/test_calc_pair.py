@@ -95,6 +95,12 @@ class TestComputePair:
         df = compute_pair(simple_wide, "USD", "JPY")
         assert list(df["date"]) == sorted(df["date"])
 
+    def test_eur_as_base_skips_validation(self, simple_wide: pd.DataFrame) -> None:
+        # EUR is not in simple_wide.columns but should be handled as base=1
+        df = compute_pair(simple_wide, "EUR", "JPY")
+        assert len(df) == 5
+        assert np.allclose(df["rate"], simple_wide["JPY"].values)
+
 
 class TestWriteDatasetMetadata:
     def test_creates_json_file(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
@@ -118,6 +124,18 @@ class TestWriteDatasetMetadata:
         with open(tmp_path / "USDJPY" / "dataset-metadata.json") as fh:
             meta = json.load(fh)
         assert meta["title"] == "Daily FX: USD/JPY"
+
+    def test_raises_on_invalid_metadata(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
+        import common
+        original = common.DATASETS_ROOT
+        common.DATASETS_ROOT = tmp_path
+        (tmp_path / "USDJPY").mkdir()
+        df = compute_pair(simple_wide, "USD", "JPY")
+        with pytest.raises(ValueError, match="Invalid Kaggle metadata"):
+            with pytest.MonkeyPatch.context() as mp:
+                mp.setattr("calc_pair.validate_kaggle_metadata", lambda **_: ["title too long"])
+                write_dataset_metadata("USDJPY", "USD", "JPY", df)
+        common.DATASETS_ROOT = original
 
     def test_no_is_private_key(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common

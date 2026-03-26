@@ -2,6 +2,7 @@
 
 import sys
 from pathlib import Path
+from unittest.mock import patch
 
 import pytest
 
@@ -10,6 +11,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 from resolve_pairs import (
     all_pairs,
     filter_valid_pairs,
+    load_available_currencies,
     load_pairs_file,
     parse_pair_input,
 )
@@ -73,6 +75,33 @@ class TestParsePairInput:
 
     def test_preserves_order(self) -> None:
         assert parse_pair_input("GBPJPY,USDJPY") == ["GBPJPY", "USDJPY"]
+
+
+class TestLoadAvailableCurrencies:
+    def test_returns_sorted_unique_list(self, tmp_path: Path) -> None:
+        csv = tmp_path / "all_currencies.csv"
+        csv.write_text(
+            "date,currency,rate_vs_eur\n"
+            "2024-01-01,USD,1.1\n"
+            "2024-01-02,USD,1.2\n"
+            "2024-01-01,JPY,130.0\n"
+        )
+        with patch("resolve_pairs.ECB_RAW_PATH", csv):
+            currencies = load_available_currencies()
+        assert currencies == sorted(set(currencies))
+        assert "USD" in currencies
+        assert "JPY" in currencies
+
+    def test_deduplicates_currencies(self, tmp_path: Path) -> None:
+        csv = tmp_path / "all_currencies.csv"
+        csv.write_text(
+            "date,currency,rate_vs_eur\n"
+            "2024-01-01,USD,1.1\n"
+            "2024-01-02,USD,1.2\n"
+        )
+        with patch("resolve_pairs.ECB_RAW_PATH", csv):
+            currencies = load_available_currencies()
+        assert currencies.count("USD") == 1
 
 
 class TestFilterValidPairs:

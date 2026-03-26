@@ -1,5 +1,6 @@
 """tests/test_fetch_ecb.py"""
 
+import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch
@@ -9,6 +10,7 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
+import fetch_ecb
 from fetch_ecb import fetch_raw_csv, parse_ecb_csv
 
 
@@ -92,3 +94,33 @@ class TestParseEcbCsv:
         csv_with_missing = SAMPLE_CSV + "2024-01-03,USD,\n"
         df = parse_ecb_csv(csv_with_missing)
         assert len(df) == 4
+
+
+class TestFetchEcbMain:
+    def test_main_saves_csv(self, tmp_path: Path) -> None:
+        mock_csv = (
+            "TIME_PERIOD,CURRENCY,OBS_VALUE\n"
+            "2024-01-01,USD,1.1\n"
+            "2024-01-01,JPY,130.0\n"
+        )
+        csv_path = tmp_path / "all_currencies.csv"
+        with patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv), \
+             patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path), \
+             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}):
+            fetch_ecb.main()
+        assert csv_path.exists()
+
+    def test_main_csv_contains_currencies(self, tmp_path: Path) -> None:
+        mock_csv = (
+            "TIME_PERIOD,CURRENCY,OBS_VALUE\n"
+            "2024-01-01,USD,1.1\n"
+            "2024-01-01,JPY,130.0\n"
+        )
+        csv_path = tmp_path / "all_currencies.csv"
+        with patch.object(fetch_ecb, "fetch_raw_csv", return_value=mock_csv), \
+             patch.object(fetch_ecb, "ECB_RAW_PATH", csv_path), \
+             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(tmp_path / "summary.md")}):
+            fetch_ecb.main()
+        import pandas as pd
+        df = pd.read_csv(csv_path)
+        assert set(df["currency"].unique()) == {"USD", "JPY"}

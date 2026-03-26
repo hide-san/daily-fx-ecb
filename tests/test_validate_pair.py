@@ -3,6 +3,7 @@
 import sys
 from datetime import date, timedelta
 from pathlib import Path
+from unittest.mock import patch
 
 import numpy as np
 import pandas as pd
@@ -17,6 +18,7 @@ from validate_pair import (
     check_no_all_null_columns,
     check_no_unexpected_gap,
     check_spike_guard,
+    run_checks,
 )
 
 
@@ -108,3 +110,29 @@ class TestCheckNoAllNullColumns:
 
     def test_partial_nans_are_allowed(self) -> None:
         assert check_no_all_null_columns(make_df()) == []
+
+
+class TestRunChecks:
+    def test_missing_csv_returns_false(self, tmp_path: Path) -> None:
+        with patch("validate_pair.DATASETS_ROOT", tmp_path):
+            passed, errors = run_checks("USDJPY")
+        assert passed is False
+        assert any("not found" in e for e in errors)
+
+    def test_valid_csv_passes_all_checks(self, tmp_path: Path) -> None:
+        pair_dir = tmp_path / "USDJPY"
+        pair_dir.mkdir()
+        make_df().to_csv(pair_dir / "USDJPY.csv", index=False)
+        with patch("validate_pair.DATASETS_ROOT", tmp_path):
+            passed, errors = run_checks("USDJPY")
+        assert passed is True
+        assert errors == []
+
+    def test_stale_csv_returns_errors(self, tmp_path: Path) -> None:
+        pair_dir = tmp_path / "USDJPY"
+        pair_dir.mkdir()
+        make_df(latest_offset_days=10).to_csv(pair_dir / "USDJPY.csv", index=False)
+        with patch("validate_pair.DATASETS_ROOT", tmp_path):
+            passed, errors = run_checks("USDJPY")
+        assert passed is False
+        assert len(errors) >= 1
