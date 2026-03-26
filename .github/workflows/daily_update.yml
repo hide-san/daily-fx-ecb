@@ -89,7 +89,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/python-setup
       - name: Generate ${{ matrix.pair }} cover image
-        run: python scripts/generate_cover.py --pair ${{ matrix.pair }}
+        run: python scripts/create_cover.py --pair ${{ matrix.pair }}
       - name: Save ${{ matrix.pair }} cover image as artifact
         if: success()
         uses: actions/upload-artifact@v4

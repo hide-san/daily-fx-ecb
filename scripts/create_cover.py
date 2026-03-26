@@ -1,5 +1,5 @@
 """
-scripts/generate_cover.py  --pair <BASEQUOTE>
+scripts/create_cover.py  --pair <BASEQUOTE>
 ==============================================
 Generate a 1280x640 PNG cover image for one currency pair dataset.
 
