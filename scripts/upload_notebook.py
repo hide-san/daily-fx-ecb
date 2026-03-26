@@ -102,13 +102,15 @@ def wait_for_kernel(
 
     while True:
         result = run_command(["kaggle", "kernels", "status", slug])
-        output = (result.stdout + result.stderr).lower()
+        output = result.stdout + result.stderr
 
-        if "complete" in output:
+        # Match exact Kaggle status strings to avoid false positives.
+        # e.g. "404 Client Error" contains "error" but means "not ready yet".
+        if "KernelWorkerStatus.COMPLETE" in output:
             print(f"{slug}: kernel completed successfully.")
             return True
 
-        if "error" in output:
+        if "KernelWorkerStatus.ERROR" in output:
             print(f"ERROR: kernel processing failed for {slug}.", file=sys.stderr)
             return False
 
