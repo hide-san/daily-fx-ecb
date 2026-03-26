@@ -102,9 +102,15 @@ class TestComputePair:
         df = compute_pair(simple_wide, "USD", "JPY")
         assert list(df["date"]) == sorted(df["date"])
 
-    def test_eur_as_base_skips_validation(self, simple_wide: pd.DataFrame) -> None:
-        # EUR is not in simple_wide.columns but should be handled as base=1
-        df = compute_pair(simple_wide, "EUR", "JPY")
+    def test_eur_as_base_requires_injection(self, simple_wide: pd.DataFrame) -> None:
+        # EUR must be injected by the caller before compute_pair is invoked
+        with pytest.raises(ValueError, match="EUR"):
+            compute_pair(simple_wide, "EUR", "JPY")
+
+    def test_eur_as_base_works_after_injection(self, simple_wide: pd.DataFrame) -> None:
+        wide = simple_wide.copy()
+        wide["EUR"] = 1.0
+        df = compute_pair(wide, "EUR", "JPY")
         assert len(df) == 5
         assert np.allclose(df["rate"], simple_wide["JPY"].values)
 

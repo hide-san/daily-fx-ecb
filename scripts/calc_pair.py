@@ -32,16 +32,9 @@ def load_eur_rates(path: Path = ECB_RAW_PATH) -> pd.DataFrame:
 
 
 def compute_pair(wide: pd.DataFrame, base: str, quote: str) -> pd.DataFrame:
-    EURO_CCY = "EUR"
     for ccy in (base, quote):
-        if ccy == EURO_CCY:
-            continue
         if ccy not in wide.columns:
             raise ValueError(f"Currency '{ccy}' not found in ECB data.")
-
-    if base == EURO_CCY:
-        wide = wide.copy()
-        wide[base] = 1
 
     df = (wide[quote] / wide[base]).dropna().rename("rate").reset_index()
     df.columns = ["date", "rate"]
@@ -139,6 +132,7 @@ def main() -> None:
     print(f"Pair : {pair}  ({base} / {quote})")
 
     wide = load_eur_rates()
+    wide["EUR"] = 1.0  # EUR/EUR = 1 by definition; ECB raw data does not include an EUR column
     print(f"ECB data loaded: {len(wide)} days x {len(wide.columns)} currencies")
 
     df = compute_pair(wide, base, quote)
