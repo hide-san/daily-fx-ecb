@@ -9,9 +9,10 @@ on:
       pairs:
         description: >
           Comma-separated pair codes to process (e.g. USDJPY,EURUSD,GBPJPY).
-          Leave blank to process all combinations (max 256 per GitHub limit).
+          Leave blank to process all pairs from pairs.txt.
+          For a quick test, enter: NZDJPY
         required: false
-        default: "NZDJPY"
+        default: ""
 
       upload_concurrency:
         description: "Max parallel Kaggle uploads (1-5)."
