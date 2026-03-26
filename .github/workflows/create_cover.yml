@@ -10,13 +10,6 @@ on:
         required: false
         default: ""
 
-      upload_concurrency:
-        description: "Max parallel jobs (1-5)."
-        required: false
-        default: "5"
-        type: choice
-        options: ["1", "2", "3", "4", "5"]
-
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -43,7 +36,6 @@ jobs:
     continue-on-error: true
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '5') }}
       matrix:
         pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
     steps:
