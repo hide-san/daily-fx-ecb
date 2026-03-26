@@ -66,12 +66,13 @@ _NOTEBOOK_FILE = {
 
 def _get_slug(pair: str, kind: str) -> str:
     """Return the Kaggle kernel slug for the given pair and kind."""
+    from create_getting_started import getting_started_slug
     if kind == "eda":
         return notebook_slug(pair)
     elif kind == "modeling":
         return modeling_notebook_slug(pair)
     elif kind == "getting-started":
-        return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-getting-started"
+        return getting_started_slug(pair)
     else:
         return utils_slug()
 
@@ -155,6 +156,7 @@ def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
         shutil.copy(notebook_src,  tmp_path / notebook_src.name)
         shutil.copy(metadata_src,  tmp_path / "kernel-metadata.json")
 
+        print(f"Files in tmp dir: {list(tmp_path.iterdir())}")
         result = run_command([
             "kaggle", "kernels", "push",
             "--path", str(tmp_path),
