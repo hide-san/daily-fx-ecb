@@ -1,0 +1,60 @@
+name: Create Cover Images
+
+on:
+  workflow_dispatch:
+    inputs:
+      pairs:
+        description: >
+          Comma-separated pair codes (e.g. USDJPY,EURUSD).
+          Leave blank to process all pairs from pairs.txt.
+        required: false
+        default: ""
+
+      upload_concurrency:
+        description: "Max parallel jobs (1-5)."
+        required: false
+        default: "5"
+        type: choice
+        options: ["1", "2", "3", "4", "5"]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  resolve:
+    name: "Resolve Pairs"
+    runs-on: ubuntu-latest
+    outputs:
+      pairs_json: ${{ steps.resolve.outputs.pairs_json }}
+      pair_count: ${{ steps.resolve.outputs.pair_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+      - name: Resolve pair list
+        id: resolve
+        run: python scripts/resolve_pairs.py --pairs "${{ github.event.inputs.pairs }}"
+
+  create-cover:
+    name: "${{ matrix.pair }}: Cover Image"
+    needs: resolve
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      fail-fast: false
+      max-parallel: ${{ fromJson(github.event.inputs.upload_concurrency || '5') }}
+      matrix:
+        pair: ${{ fromJson(needs.resolve.outputs.pairs_json) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+      - name: Generate ${{ matrix.pair }} cover image
+        run: python scripts/create_cover.py --pair ${{ matrix.pair }}
+      - name: Save ${{ matrix.pair }} cover image as artifact
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.pair }}-cover-${{ github.run_id }}
+          path: datasets/${{ matrix.pair }}/${{ matrix.pair }}.png
+          retention-days: 7
