@@ -23,6 +23,7 @@ from common import (
     notebook_output_dir,
     notebook_slug,
     notebook_title,
+    pair_display,
     parse_pair,
     series_search_url,
     utils_slug,
@@ -33,20 +34,19 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
     eda_slug     = dataset_slug(pair)
     eda_nb_title = notebook_title(pair)
     eda_nb_slug  = notebook_slug(pair)
+    display      = pair_display(pair)
 
     cells = [
 
-        md(f"""\
-# {modeling_notebook_title(pair)}
+        md(f"""# {modeling_notebook_title(pair)}
 
 **Dataset** : [{eda_slug}](https://www.kaggle.com/datasets/{eda_slug})
 **Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})
-**Pair**    : {base} / {quote}
+**Pair**    : {display}
 **Source**  : European Central Bank (ECB) -- free reuse with attribution
 """),
 
-        md(f"""\
----
+        md(f"""---
 
 ### Explore the full Daily FX series
 
@@ -58,11 +58,9 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict:
 ---
 """),
 
-        code("""\
-!pip install arch --quiet"""),
+        code("""!pip install arch --quiet"""),
 
-        code("""\
-import warnings
+        code("""import warnings
 warnings.filterwarnings("ignore")
 
 import numpy as np
@@ -93,8 +91,7 @@ apply_plot_style()
 log = get_logger()"""),
 
         md("## Load data"),
-        code(f"""\
-DATA_DIR = find_data_dir("{pair}")
+        code(f"""DATA_DIR = find_data_dir("{pair}")
 log.info("DATA_DIR resolved to: %s", DATA_DIR)
 
 df = pd.read_csv(DATA_DIR / "{pair}.csv", parse_dates=["date"])
@@ -104,15 +101,13 @@ returns = df["log_return"].dropna().reset_index(drop=True)
 print_summary("{pair}", df)
 df.tail()"""),
 
-        md("""\
-## Stationarity check (ADF test)
+        md("""## Stationarity check (ADF test)
 
 ARIMA requires a stationary series.  We test the log return series with the
 Augmented Dickey-Fuller (ADF) test.  A p-value below 0.05 rejects the unit-root
 hypothesis and confirms stationarity.
 """),
-        code("""\
-adf_result = adfuller(returns, autolag="AIC")
+        code("""adf_result = adfuller(returns, autolag="AIC")
 print(f"ADF statistic : {adf_result[0]:.4f}")
 print(f"p-value       : {adf_result[1]:.4f}")
 print(f"Lags used     : {adf_result[2]}")
@@ -122,34 +117,29 @@ if adf_result[1] < 0.05:
 else:
     print("Series may not be stationary -- consider differencing.")"""),
 
-        md("""\
-## ACF / PACF -- choosing ARIMA order
+        md("""## ACF / PACF -- choosing ARIMA order
 """),
-        code("""\
-fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+        code("""fig, axes = plt.subplots(1, 2, figsize=(14, 4))
 plot_acf( returns, lags=30, ax=axes[0], title="ACF  (log returns)")
 plot_pacf(returns, lags=30, ax=axes[1], title="PACF (log returns)", method="ywm")
 plt.tight_layout()
 plt.show()"""),
 
         md("## ARIMA model"),
-        code(f"""\
-TRAIN_CUTOFF = df["date"].max() - pd.DateOffset(years=2)
+        code(f"""TRAIN_CUTOFF = df["date"].max() - pd.DateOffset(years=2)
 train_returns = returns.iloc[:len(df[df["date"] < TRAIN_CUTOFF])]
 test_returns  = returns.iloc[len(train_returns):]
 
 arima = ARIMA(train_returns, order=(1, 0, 1)).fit()
 print(arima.summary())"""),
 
-        code("""\
-fig = arima.plot_diagnostics(figsize=(14, 8))
+        code("""fig = arima.plot_diagnostics(figsize=(14, 8))
 plt.suptitle("ARIMA(1,0,1) -- residual diagnostics", y=1.01)
 plt.tight_layout()
 plt.show()"""),
 
         md("## ARIMA 30-day forecast"),
-        code(f"""\
-HORIZON = 30
+        code(f"""HORIZON = 30
 
 forecast = arima.get_forecast(steps=HORIZON)
 fc_mean  = forecast.predicted_mean
@@ -172,7 +162,7 @@ ax.plot(fc_dates, rate_fc, color=COLOR_SIGNAL, linestyle="--",
         linewidth=1.2, label="ARIMA forecast")
 ax.fill_between(fc_dates, rate_ci_low, rate_ci_high,
                 color=COLOR_SIGNAL, alpha=0.15, label="95% CI")
-ax.set_title(f"{{HORIZON}}-day {pair} rate forecast (ARIMA)")
+ax.set_title(f"{{HORIZON}}-day {display} rate forecast (ARIMA)")
 ax.set_ylabel("{quote} per {base}")
 ax.legend()
 plt.tight_layout()
@@ -181,14 +171,12 @@ plt.show()
 rmse = np.sqrt(((test_returns.values[:HORIZON] - fc_mean.values[:HORIZON]) ** 2).mean())
 print(f"ARIMA RMSE (log returns, {{HORIZON}}-day) : {{rmse:.6f}}")"""),
 
-        md("""\
-## GARCH -- volatility clustering
+        md("""## GARCH -- volatility clustering
 """),
-        code(f"""\
-fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
+        code(f"""fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
 axes[0].plot(df["date"], df["log_return"],
              linewidth=0.5, color=COLOR_RATE, alpha=0.8)
-axes[0].set_title("{pair} log returns")
+axes[0].set_title("{display} log returns")
 axes[0].axhline(0, color=COLOR_SIGNAL, linewidth=0.6, linestyle="--")
 
 axes[1].plot(df["date"], df["volatility_20d"],
@@ -198,13 +186,11 @@ plt.tight_layout()
 plt.show()"""),
 
         md("## GARCH(1,1) fit"),
-        code("""\
-returns_pct = train_returns * 100
+        code("""returns_pct = train_returns * 100
 garch = arch_model(returns_pct, vol="Garch", p=1, q=1, dist="normal").fit(disp="off")
 print(garch.summary())"""),
 
-        code("""\
-cond_vol    = garch.conditional_volatility / 100
+        code("""cond_vol    = garch.conditional_volatility / 100
 train_dates = df.loc[df["date"] < TRAIN_CUTOFF, "date"].reset_index(drop=True)
 
 fig, ax = plt.subplots(figsize=(12, 4))
@@ -222,8 +208,7 @@ plt.tight_layout()
 plt.show()"""),
 
         md("## GARCH volatility forecast (30-day)"),
-        code(f"""\
-garch_fc = garch.forecast(horizon=HORIZON, reindex=False)
+        code(f"""garch_fc = garch.forecast(horizon=HORIZON, reindex=False)
 fc_vol   = np.sqrt(garch_fc.variance.values[-1]) / 100
 
 fig, ax = plt.subplots(figsize=(10, 4))
@@ -238,8 +223,7 @@ plt.show()
 print(f"Day-1 forecast std : {{fc_vol[0]:.6f}}")
 print(f"Day-30 forecast std: {{fc_vol[-1]:.6f}}")"""),
 
-        md(f"""\
-## Summary and next steps
+        md(f"""## Summary and next steps
 
 | Model | Purpose | Key result |
 |---|---|---|
