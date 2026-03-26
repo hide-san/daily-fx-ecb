@@ -1,5 +1,5 @@
 """
-scripts/create_modeling_notebook.py  --pair <BASEQUOTE>
+scripts/create_notebook_modeling.py  --pair <BASEQUOTE>
 ========================================================
 Job 3 -- Generate the modeling notebook for one currency pair.
 

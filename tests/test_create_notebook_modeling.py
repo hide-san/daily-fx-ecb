@@ -1,4 +1,4 @@
-"""tests/test_create_modeling_notebook.py"""
+"""tests/test_create_notebook_modeling.py"""
 
 import json
 import os
@@ -8,8 +8,8 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
-from create_modeling_notebook import build_modeling_notebook
-from create_modeling_notebook import write_kernel_metadata as write_modeling_metadata
+from create_notebook_modeling import build_modeling_notebook
+from create_notebook_modeling import write_kernel_metadata as write_modeling_metadata
 
 
 class TestBuildModelingNotebook:
@@ -32,18 +32,18 @@ class TestBuildModelingNotebook:
 
 class TestWriteKernelMetadataModeling:
     def test_creates_metadata_file(self, tmp_path: Path) -> None:
-        with patch("create_modeling_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path):
             write_modeling_metadata("USDJPY")
         assert (tmp_path / "kernel-metadata-modeling.json").exists()
 
     def test_code_file_is_modeling_notebook(self, tmp_path: Path) -> None:
-        with patch("create_modeling_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path):
             write_modeling_metadata("USDJPY")
         meta = json.loads((tmp_path / "kernel-metadata-modeling.json").read_text())
         assert meta["code_file"] == "USDJPY_modeling.ipynb"
 
     def test_internet_enabled_for_modeling(self, tmp_path: Path) -> None:
-        with patch("create_modeling_notebook.notebook_output_dir", return_value=tmp_path):
+        with patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path):
             write_modeling_metadata("USDJPY")
         meta = json.loads((tmp_path / "kernel-metadata-modeling.json").read_text())
         assert meta["enable_internet"] is True
@@ -51,14 +51,14 @@ class TestWriteKernelMetadataModeling:
 
 class TestMainCreateModelingNotebook:
     def test_main_creates_notebook_and_metadata(self, tmp_path: Path) -> None:
-        import create_modeling_notebook
+        import create_notebook_modeling
 
         summary = tmp_path / "summary.md"
         with (
-            patch("sys.argv", ["create_modeling_notebook.py", "--pair", "USDJPY"]),
-            patch("create_modeling_notebook.notebook_output_dir", return_value=tmp_path),
+            patch("sys.argv", ["create_notebook_modeling.py", "--pair", "USDJPY"]),
+            patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
-            create_modeling_notebook.main()
+            create_notebook_modeling.main()
         assert (tmp_path / "USDJPY_modeling.ipynb").exists()
         assert (tmp_path / "kernel-metadata-modeling.json").exists()

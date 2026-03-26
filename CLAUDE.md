@@ -41,9 +41,9 @@ This is a fully automated pipeline that fetches ECB FX data and publishes per-pa
 
 **Notebook update** (Mondays 16:00 UTC):
 - `create_utils_script.py` → `upload_notebook.py --kind utils` (once)
-- `create_getting_started_notebook.py` → `upload_notebook.py --kind getting-started` (per pair)
-- `create_eda_notebook.py` → `upload_notebook.py --kind eda` (per pair)
-- `create_modeling_notebook.py` → `upload_notebook.py --kind modeling` (per pair)
+- `create_notebook_getting_started.py` → `upload_notebook.py --kind getting-started` (per pair)
+- `create_notebook_eda.py` → `upload_notebook.py --kind eda` (per pair)
+- `create_notebook_modeling.py` → `upload_notebook.py --kind modeling` (per pair)
 
 ### Cross-rate computation
 

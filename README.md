@@ -54,9 +54,9 @@ scripts/
   validate_pair.py          Job 3 -- data quality gate
   upload_dataset.py                  Job 3 -- upload dataset to Kaggle
   create_utils_script.py             generate shared fx_utils.py
-  create_eda_notebook.py             generate EDA notebook
-  create_modeling_notebook.py        generate ARIMA/GARCH notebook
-  create_getting_started_notebook.py generate beginner notebook
+  create_notebook_eda.py             generate EDA notebook
+  create_notebook_modeling.py        generate ARIMA/GARCH notebook
+  create_notebook_getting_started.py generate beginner notebook
   upload_notebook.py                 push notebook or utils script to Kaggle
 
 tests/

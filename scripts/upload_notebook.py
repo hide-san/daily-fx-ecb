@@ -67,7 +67,7 @@ _NOTEBOOK_FILE: dict[str, Callable[[str], str]] = {
 
 def _get_slug(pair: str, kind: str) -> str:
     """Return the Kaggle kernel slug for the given pair and kind."""
-    from create_getting_started_notebook import getting_started_slug
+    from create_notebook_getting_started import getting_started_slug
 
     if kind == "eda":
         return notebook_slug(pair)
