@@ -73,28 +73,37 @@ def parse_pair(pair: str) -> tuple[str, str]:
     return pair[:3], pair[3:]
 
 
+def pair_display(pair: str) -> str:
+    """Return human-readable pair display string e.g. 'NZD/JPY'."""
+    base, quote = parse_pair(pair)
+    return f"{base}/{quote}"
+
+
 def dataset_slug(pair: str) -> str:
-    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}"
+    base, quote = parse_pair(pair)
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}"
 
 
 def notebook_slug(pair: str) -> str:
-    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-eda-baseline-forecast"
+    base, quote = parse_pair(pair)
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-eda-baseline-forecast"
 
 
 def modeling_notebook_slug(pair: str) -> str:
-    return f"{KAGGLE_USER}/daily-fx-{pair.lower()}-arima-garch-modeling"
+    base, quote = parse_pair(pair)
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-arima-garch-modeling"
 
 
 def dataset_title(pair: str) -> str:
-    return f"Daily FX: {pair}"
+    return f"Daily FX: {pair_display(pair)}"
 
 
 def notebook_title(pair: str) -> str:
-    return f"Daily FX: {pair} - EDA & Baseline Forecast"
+    return f"Daily FX: {pair_display(pair)} - EDA & Baseline Forecast"
 
 
 def modeling_notebook_title(pair: str) -> str:
-    return f"Daily FX: {pair} - ARIMA & GARCH Modeling"
+    return f"Daily FX: {pair_display(pair)} - ARIMA & GARCH Modeling"
 
 
 def series_search_url(resource: str) -> str:
@@ -159,12 +168,12 @@ def validate_kaggle_metadata(title: str, subtitle: str, keywords: list[str]) -> 
     if not (KAGGLE_TITLE_MIN <= len(title) <= KAGGLE_TITLE_MAX):
         errors.append(
             f"title length {len(title)} is outside [{KAGGLE_TITLE_MIN}, {KAGGLE_TITLE_MAX}]: "
-            f"\'{title}\'"
+            f"'{title}'"
         )
     if not (KAGGLE_SUBTITLE_MIN <= len(subtitle) <= KAGGLE_SUBTITLE_MAX):
         errors.append(
             f"subtitle length {len(subtitle)} is outside "
-            f"[{KAGGLE_SUBTITLE_MIN}, {KAGGLE_SUBTITLE_MAX}]: \'{subtitle}\'"
+            f"[{KAGGLE_SUBTITLE_MIN}, {KAGGLE_SUBTITLE_MAX}]: '{subtitle}'"
         )
     if len(keywords) > KAGGLE_KEYWORDS_MAX:
         errors.append(
