@@ -51,10 +51,10 @@ def build_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
     cells = [
         md(f"""# {lgbm_notebook_title(pair)}
 
-**Dataset** : [{slug}](https://www.kaggle.com/datasets/{slug})
-**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})
-**Part 2**  : [ARIMA / GARCH Modeling](https://www.kaggle.com/code/{modeling_nb_slug})
-**Pair**    : {display}
+**Dataset** : [{slug}](https://www.kaggle.com/datasets/{slug})  
+**Part 1**  : [{eda_nb_title}](https://www.kaggle.com/code/{eda_nb_slug})  
+**Part 2**  : [ARIMA / GARCH Modeling](https://www.kaggle.com/code/{modeling_nb_slug})  
+**Pair**    : {display}  
 **Source**  : European Central Bank (ECB) -- free reuse with attribution
 """),
         md(f"""---
@@ -87,7 +87,7 @@ fu.apply_plot_style()
 log = fu.get_logger()"""),
         md(f"""## Load data
 
-**Goal**: Load the {display} dataset and inspect its shape and feature columns.
+**Goal**: Load the {display} dataset and inspect its shape and feature columns.  
 **How**: Read via the shared utility, which returns a tidy DataFrame with pre-computed
 features (`ma_*`, `volatility_20d`, calendar columns).
 """),
@@ -97,7 +97,7 @@ df.tail()"""),
         md("""## Feature engineering
 
 **Goal**: Build a rich feature set that gives the model information about recent price
-dynamics without leaking future values.
+dynamics without leaking future values.  
 **How**: Add lag features (rate 1, 5, and 21 trading days ago) and combine them with
 the existing moving-average and volatility columns already in the dataset.
 The target is tomorrow's rate -- constructed by shifting the rate column back by one day.
@@ -124,7 +124,7 @@ print(f"Modelling rows: {len(df_model):,}")"""),
         md("""## Train / test split
 
 **Goal**: Evaluate the model on out-of-sample data to get an honest estimate of
-forecast accuracy.
+forecast accuracy.  
 **How**: Use the last two years as the hold-out test set -- the same cutoff used for
 the rolling-mean baseline in the EDA notebook -- so the RMSE (Root Mean Squared Error)
 values are directly comparable.
@@ -142,7 +142,7 @@ print(f"Test : {len(test):,} rows  ({test['date'].min().date()} -- {test['date']
         md("""## Train LightGBM model
 
 **Goal**: Fit a gradient-boosted tree model that learns non-linear relationships
-between the feature set and the next-day rate.
+between the feature set and the next-day rate.  
 **How**: Use `LGBMRegressor` with conservative hyperparameters (shallow trees, low
 learning rate, early stopping) to avoid overfitting on a relatively small financial
 time series.
@@ -166,7 +166,7 @@ model.fit(
 print(f"Best iteration: {model.best_iteration_}")"""),
         md(f"""## Predictions vs actual
 
-**Goal**: Visually inspect whether the model tracks the test-period rate trajectory.
+**Goal**: Visually inspect whether the model tracks the test-period rate trajectory.  
 **How**: Overlay the model's predictions on the actual {display} rate for the two-year
 test window.
 """),
@@ -184,7 +184,7 @@ plt.show()"""),
         md("""## Forecast accuracy
 
 **Goal**: Quantify how much the model improves over the simple rolling-mean baseline
-established in the EDA notebook.
+established in the EDA notebook.  
 **How**: Compute RMSE (Root Mean Squared Error) and MAE (Mean Absolute Error) on the
 test set and print them side-by-side with the rolling-mean baseline for easy comparison.
 """),
@@ -204,7 +204,7 @@ print(f"{'LightGBM':<20} {rmse:>12.6f} {mae:>12.6f}")"""),
 
 **Goal**: Understand which inputs the model relies on most, and whether the learned
 importances align with economic intuition (e.g. recent prices should matter more than
-calendar effects).
+calendar effects).  
 **How**: Plot LightGBM's built-in split-based feature importance, which counts how often
 each feature is used as a split point across all trees.
 """),
