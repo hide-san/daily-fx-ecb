@@ -22,6 +22,7 @@ from common import (
     load_public_kernels,
     make_notebook,
     md,
+    modeling_notebook_slug,
     notebook_output_dir,
     notebook_slug,
     notebook_title,
@@ -77,7 +78,11 @@ log = fu.get_logger()"""),
         code(f"""df = fu.read_csv("{pair}")
 fu.print_summary("{pair}", df)
 df.tail()"""),
-        md("## Time series"),
+        md(f"""## Time series
+
+**Goal**: Identify structural breaks, sustained trends, and regime changes (e.g. financial crises, policy shifts).
+**How**: Plot the full history of the {display} spot rate on a single axis.
+"""),
         code(f"""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"], linewidth=0.8, color=fu.COLOR_RATE)
 ax.set_title("{display} spot rate (ECB reference)")
@@ -86,7 +91,11 @@ ax.xaxis.set_major_locator(mdates.YearLocator(5))
 ax.xaxis.set_major_formatter(mdates.DateFormatter("%Y"))
 plt.tight_layout()
 plt.show()"""),
-        md("## Moving averages"),
+        md("""## Moving averages
+
+**Goal**: Separate short-term noise from medium-term trend and spot momentum signals.
+**How**: Overlay 21-day and 63-day MA (Moving Average) on the spot rate; crossovers between the two are a classic momentum signal.
+"""),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(df["date"], df["rate"],   linewidth=0.6, color=fu.COLOR_MUTED,  label="spot")
 ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color=fu.COLOR_RATE,   label="21-day MA")
@@ -95,7 +104,11 @@ ax.set_title("Spot rate with moving averages")
 ax.legend()
 plt.tight_layout()
 plt.show()"""),
-        md("## Daily return distribution"),
+        md("""## Daily return distribution
+
+**Goal**: Understand the statistical shape of returns — fat tails and asymmetry matter for risk and model choice.
+**How**: Plot a histogram of daily returns and compute summary statistics (mean, std, skewness (Skew), kurtosis (Kurt)).
+"""),
         code("""returns = df["daily_return_pct"].dropna()
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
@@ -114,7 +127,11 @@ print(f"Mean : {returns.mean():.4f}%")
 print(f"Std  : {returns.std():.4f}%")
 print(f"Skew : {returns.skew():.4f}")
 print(f"Kurt : {returns.kurtosis():.4f}")"""),
-        md("## Rolling volatility (20-day)"),
+        md("""## Rolling volatility (20-day)
+
+**Goal**: Detect volatility clustering — the tendency for turbulent periods to follow turbulent ones — which motivates GARCH (Generalized AutoRegressive Conditional Heteroskedasticity) modelling.
+**How**: Compute the 20-day rolling standard deviation of daily returns and plot it over time.
+"""),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
 ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=fu.COLOR_SIGNAL)
 ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color=fu.COLOR_SIGNAL)
@@ -124,8 +141,8 @@ plt.tight_layout()
 plt.show()"""),
         md("""## Rolling-mean forecast baseline
 
-Predict tomorrow's rate as the 21-day rolling mean.
-This establishes a benchmark RMSE to beat with more sophisticated models.
+**Goal**: Establish a benchmark RMSE (Root Mean Squared Error) that more sophisticated models must beat.
+**How**: Predict tomorrow's rate as the 21-day rolling mean — a simple yet surprisingly hard baseline to outperform in FX markets.
 """),
         code("""cutoff = df["date"].max() - pd.DateOffset(years=2)
 test   = df[df["date"] >= cutoff].copy()
@@ -135,8 +152,8 @@ test_pred = df.loc[df["date"] >= cutoff, "pred_rolling"]
 
 rmse = np.sqrt(((test["rate"].values - test_pred.values) ** 2).mean())
 mae  = np.abs(test["rate"].values - test_pred.values).mean()
-print(f"Baseline RMSE : {rmse:.6f}")
-print(f"Baseline MAE  : {mae:.6f}")
+print(f"Baseline RMSE (Root Mean Squared Error) : {rmse:.6f}")
+print(f"Baseline MAE  (Mean Absolute Error)      : {mae:.6f}")
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(test["date"], test["rate"],  linewidth=1.0, color=fu.COLOR_RATE,   label="actual")
@@ -146,10 +163,14 @@ ax.set_title("Actual vs rolling-mean forecast (last 2 years)")
 ax.legend()
 plt.tight_layout()
 plt.show()"""),
-        md("""## Next steps
+        md(f"""## Next steps
 
-- **ARIMA / SARIMA** -- capture autocorrelation in the return series
-- **GARCH** -- model time-varying volatility
+Ready to go further? The companion notebook applies more sophisticated models to this pair:
+
+**[ARIMA / GARCH Modeling](https://www.kaggle.com/code/{modeling_notebook_slug(pair)})**
+
+- **ARIMA (AutoRegressive Integrated Moving Average) / SARIMA (Seasonal ARIMA)** -- capture autocorrelation in the return series
+- **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity)** -- model time-varying volatility
 - **LightGBM / XGBoost** -- use `ma_*`, `volatility_20d`, and calendar features
 - **Multivariate** -- combine several pairs from other ECB datasets
 
