@@ -227,8 +227,8 @@ def write_kernel_metadata() -> None:
 def main() -> None:
     slug = utils_slug()
     if slug not in load_public_kernels():
-        print(f"ERROR: '{slug}' is not listed in public_kernels.txt.", file=sys.stderr)
-        sys.exit(1)
+        print(f"Skipping '{slug}': not listed in public_kernels.txt.")
+        sys.exit(0)
 
     output_dir = utils_output_dir()
     script_path = output_dir / "fx_utils.py"

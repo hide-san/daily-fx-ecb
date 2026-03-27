@@ -93,8 +93,8 @@ def write_kernel_metadata() -> None:
 def main() -> None:
     slug = pipeline_notebook_slug()
     if slug not in load_public_kernels():
-        print(f"ERROR: '{slug}' is not listed in public_kernels.txt.", file=sys.stderr)
-        sys.exit(1)
+        print(f"Skipping '{slug}': not listed in public_kernels.txt.")
+        sys.exit(0)
 
     output_dir = pipeline_notebook_output_dir()
 
