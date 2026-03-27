@@ -71,13 +71,16 @@ GITHUB_RAW_BASE_URL = "https://raw.githubusercontent.com/hide-san/daily-fx-ecb"
 
 
 def load_public_kernels(path: Path = PUBLIC_KERNELS_FILE) -> set[str]:
-    """Return the set of Kaggle kernel slugs listed in public_kernels.txt.
+    """Return the set of fully-qualified Kaggle kernel slugs from public_kernels.txt.
 
-    Each non-blank, non-comment line is a slug.  Scripts call this to verify
-    their slug is explicitly approved before writing any files.
+    Each non-blank, non-comment line is a kernel name (without username prefix).
+    KAGGLE_USER is prepended automatically so the file stays username-agnostic.
+    Scripts call this to verify their slug is explicitly approved before writing
+    any files.
     """
     lines = path.read_text(encoding="utf-8").splitlines()
-    return {line.strip() for line in lines if line.strip() and not line.startswith("#")}
+    names = {line.strip() for line in lines if line.strip() and not line.startswith("#")}
+    return {f"{KAGGLE_USER}/{name}" for name in names}
 
 
 def load_pairs_file(path: Path = PAIRS_FILE) -> list[str]:
