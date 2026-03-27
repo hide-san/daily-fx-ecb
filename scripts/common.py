@@ -125,7 +125,7 @@ def modeling_notebook_slug(pair: str) -> str:
 
 def lgbm_notebook_slug(pair: str) -> str:
     base, quote = parse_pair(pair)
-    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-lgbm-forecast"
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-lightgbm-forecast"
 
 
 def dataset_title(pair: str) -> str:
