@@ -36,7 +36,7 @@ Attach this Utility Script as a kernel source to any Daily FX notebook.
 
     import sys
     sys.path.insert(0, "/kaggle/input/daily-fx-utils")
-    from fx_utils import find_data_dir, apply_plot_style, FEATURE_COLUMNS, get_logger
+    from fx_utils import read_csv, apply_plot_style, FEATURE_COLUMNS, get_logger
 """
 
 from __future__ import annotations
@@ -46,18 +46,11 @@ import logging
 from pathlib import Path
 
 # ---------------------------------------------------------------------------
-# Section 1 -- Data path resolver
+# Section 1 -- Data loader
 # ---------------------------------------------------------------------------
 
-def find_data_dir(pair: str) -> Path:
-    """
-    Locate <pair>.csv under /kaggle/input regardless of path layout.
-
-    Known patterns:
-        /kaggle/input/<slug>/<PAIR>.csv                   (most common)
-        /kaggle/input/datasets/<owner>/<slug>/<PAIR>.csv  (legacy / org)
-        /kaggle/input/<slug>/<PAIR>/<PAIR>.csv            (nested)
-    """
+def _find_data_dir(pair: str) -> Path:
+    """Locate <pair>.csv under /kaggle/input regardless of path layout."""
     csv_name = f"{pair}.csv"
 
     # Fast path -- most common layout
@@ -75,6 +68,19 @@ def find_data_dir(pair: str) -> Path:
     if len(matches) > 1:
         print(f"[warn] Multiple matches for {csv_name}: {matches} -- using {matches[0]}")
     return Path(matches[0]).parent
+
+
+def read_csv(pair: str) -> "pd.DataFrame":
+    """
+    Load the Daily FX CSV for a currency pair and return a sorted DataFrame.
+
+        df = read_csv("USDJPY")
+    """
+    import pandas as pd  # type: ignore[import]
+
+    data_dir = _find_data_dir(pair)
+    df = pd.read_csv(data_dir / f"{pair}.csv", parse_dates=["date"])
+    return df.sort_values("date").reset_index(drop=True)
 
 
 # ---------------------------------------------------------------------------

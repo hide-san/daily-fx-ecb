@@ -17,8 +17,12 @@ class TestCreateUtilsScript:
         assert isinstance(FX_UTILS_SOURCE, str)
         assert len(FX_UTILS_SOURCE) > 0
 
-    def test_fx_utils_source_has_find_data_dir(self) -> None:
-        assert "find_data_dir" in FX_UTILS_SOURCE
+    def test_fx_utils_source_has_read_csv(self) -> None:
+        assert "def read_csv" in FX_UTILS_SOURCE
+
+    def test_fx_utils_source_find_data_dir_is_private(self) -> None:
+        assert "def _find_data_dir" in FX_UTILS_SOURCE
+        assert "def find_data_dir" not in FX_UTILS_SOURCE
 
     def test_fx_utils_source_has_feature_columns(self) -> None:
         assert "FEATURE_COLUMNS" in FX_UTILS_SOURCE

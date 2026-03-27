@@ -69,7 +69,7 @@ import sys
 
 # Shared Daily FX utilities
 from daily_fx_utils import (
-    find_data_dir,
+    read_csv,
     apply_plot_style,
     FEATURE_COLUMNS,
     COLOR_RATE,
@@ -87,12 +87,7 @@ from arch import arch_model
 apply_plot_style()
 log = get_logger()"""),
         md("## Load data"),
-        code(f"""DATA_DIR = find_data_dir("{pair}")
-log.info("DATA_DIR resolved to: %s", DATA_DIR)
-
-df = pd.read_csv(DATA_DIR / "{pair}.csv", parse_dates=["date"])
-df = df.sort_values("date").reset_index(drop=True)
-
+        code(f"""df = read_csv("{pair}")
 returns = df["log_return"].dropna().reset_index(drop=True)
 print_summary("{pair}", df)
 df.tail()"""),

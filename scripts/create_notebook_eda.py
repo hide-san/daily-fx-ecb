@@ -35,7 +35,7 @@ from common import (
 
 def build_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
     slug = dataset_slug(pair)
-    csv_file = f"{pair}.csv"
+
     display = pair_display(pair)
 
     cells = [
@@ -65,7 +65,7 @@ import sys
 
 # Shared Daily FX utilities
 from daily_fx_utils import (
-    find_data_dir,
+    read_csv,
     apply_plot_style,
     FEATURE_COLUMNS,
     COLOR_RATE,
@@ -77,11 +77,7 @@ from daily_fx_utils import (
 
 apply_plot_style()
 log = get_logger()"""),
-        code(f"""DATA_DIR = find_data_dir("{pair}")
-log.info("DATA_DIR resolved to: %s", DATA_DIR)
-
-df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
-df = df.sort_values("date").reset_index(drop=True)
+        code(f"""df = read_csv("{pair}")
 print_summary("{pair}", df)
 df.tail()"""),
         md("## Time series"),

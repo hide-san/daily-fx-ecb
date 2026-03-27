@@ -48,7 +48,7 @@ def getting_started_title(pair: str) -> str:
 
 def build_getting_started_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
     slug = dataset_slug(pair)
-    csv_file = f"{pair}.csv"
+
     display = pair_display(pair)
 
     cells = [
@@ -93,7 +93,7 @@ import matplotlib.dates as mdates
 
 # Shared Daily FX utilities
 from daily_fx_utils import (
-    find_data_dir,
+    read_csv,
     apply_plot_style,
     COLOR_RATE,
     get_logger,
@@ -106,11 +106,7 @@ print("Libraries loaded successfully.")"""),
         # Load data
         # ------------------------------------------------------------------ #
         md("## 2. Load the data"),
-        code(f"""DATA_DIR = find_data_dir("{pair}")
-log.info("DATA_DIR: %s", DATA_DIR)
-
-df = pd.read_csv(DATA_DIR / "{csv_file}", parse_dates=["date"])
-df = df.sort_values("date").reset_index(drop=True)
+        code(f"""df = read_csv("{pair}")
 
 print(f"Rows    : {{len(df):,}}")
 print(f"Columns : {{list(df.columns)}}")
