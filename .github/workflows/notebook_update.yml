@@ -8,11 +8,11 @@ name: Notebook Update Pipeline
 #   push-utils     -- generate & push shared fx_utils.py (once, not per-pair)
 #   push-pipeline  -- generate & push pipeline overview notebook (once, not per-pair)
 #   push-notebooks -- per-pair job: generates and pushes all 3 notebook kinds
-#                     in sequence (getting-started → eda → modeling).
-#                     max-parallel=3 keeps Kaggle CPU sessions ≤ 3.
+#                     in sequence (getting-started -> eda -> modeling).
+#                     max-parallel=3 keeps Kaggle CPU sessions <= 3.
 #   summary        -- write result table
 #
-# ⚠️  KAGGLE CPU SESSION LIMIT — do not change this structure without care:
+# WARNING: KAGGLE CPU SESSION LIMIT -- do not change this structure without care:
 #   Kaggle limits the number of concurrent CPU kernel sessions.
 #   All 3 notebook kinds are pushed SEQUENTIALLY within each per-pair job so
 #   that concurrent sessions == max-parallel (currently 3).
@@ -35,7 +35,7 @@ on:
         default: ""
 
       upload_concurrency:
-        description: "Max parallel pairs (1-5). Keep ≤ 3 to avoid Kaggle CPU limit."
+        description: "Max parallel pairs (1-5). Keep <= 3 to avoid Kaggle CPU limit."
         required: false
         default: "3"
         type: choice
@@ -79,7 +79,7 @@ jobs:
   # ==========================================================================
   # Job 2a: Push pipeline overview notebook (once, not per-pair)
   #
-  # Independent of resolve — no pair matrix needed.
+  # Independent of resolve -- no pair matrix needed.
   # enable_internet=true in kernel metadata allows the notebook to fetch
   # KAGGLE_README.md and CHANGELOG.md from GitHub at runtime.
   # ==========================================================================
@@ -132,7 +132,7 @@ jobs:
           python scripts/upload_notebook.py --kind utils $DRY_RUN_FLAG
 
   # ==========================================================================
-  # Job 3: Push all notebooks per pair (getting-started → eda → modeling)
+  # Job 3: Push all notebooks per pair (getting-started -> eda -> modeling)
   #
   # Pairs run in parallel (max-parallel=3).  Within each pair the three
   # notebook kinds are pushed sequentially so only one Kaggle CPU session
@@ -224,7 +224,7 @@ jobs:
             echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
             echo "| Push pipeline   | ${{ needs.push-pipeline.result }} |"
             echo "| Push utils      | ${{ needs.push-utils.result }} |"
-            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs × 3 kinds) | ${{ needs.push-notebooks.result }} |"
+            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs x 3 kinds) | ${{ needs.push-notebooks.result }} |"
             echo ""
             echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
             echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"

@@ -27,6 +27,11 @@ pytest tests/ -k "calc_pair" -v
 
 Coverage minimum is 80% (enforced in CI). `create_cover.py` is excluded from coverage.
 
+## Coding constraints
+
+- **Comments must be in English.** No Japanese or other non-ASCII languages in comments, docstrings, or string literals inside code.
+- **No multi-byte characters in source files.** All `.py` and workflow `.yml` files must use ASCII only. Multi-byte characters in data files (e.g. CSVs) are out of scope for this rule.
+
 ## Architecture
 
 This is a fully automated pipeline that fetches ECB FX data and publishes per-pair datasets and notebooks to Kaggle via GitHub Actions.
