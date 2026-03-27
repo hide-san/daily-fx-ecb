@@ -176,7 +176,6 @@ Ready to go further? Two companion notebooks apply more sophisticated models to 
 **[LightGBM Forecast](https://www.kaggle.com/code/{lgbm_notebook_slug(pair)})**
 
 - **LightGBM** -- gradient-boosted trees using lag, moving-average (MA), volatility, and calendar features
-- **Multivariate** -- combine several pairs from other ECB datasets *(coming soon)*
 
 ---
 
