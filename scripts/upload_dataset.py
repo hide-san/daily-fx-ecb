@@ -9,7 +9,7 @@ import shutil
 import sys
 import tempfile
 import time
-from datetime import datetime
+from datetime import UTC, datetime
 from pathlib import Path
 
 from common import (
@@ -21,7 +21,7 @@ from common import (
 
 def upload_dataset(pair: str, dry_run: bool) -> bool:
     dataset_dir = DATASETS_ROOT / pair
-    version_note = f"Daily update: {datetime.utcnow().strftime('%Y-%m-%d')}"
+    version_note = f"Daily update: {datetime.now(UTC).strftime('%Y-%m-%d')}"
 
     if dry_run:
         print(f"[dry-run] Skipping dataset upload for {pair}.")

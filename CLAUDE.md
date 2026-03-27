@@ -25,7 +25,7 @@ pytest tests/test_calc_pair.py -v
 pytest tests/ -k "calc_pair" -v
 ```
 
-Coverage minimum is 80% (enforced in CI). `create_cover.py` is excluded from coverage.
+Coverage minimum is 80% (enforced in CI). `create_cover.py` and `create_pipeline_diagram.py` are excluded from coverage (manual image generation scripts).
 
 ## Regenerating the pipeline diagram
 

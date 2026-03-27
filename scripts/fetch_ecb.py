@@ -8,7 +8,7 @@ import logging
 from io import StringIO
 
 import pandas as pd
-import requests  # type: ignore[import-untyped]
+import requests
 from common import (
     ECB_API_URL,
     ECB_RAW_PATH,

@@ -12,6 +12,7 @@ docs/pipeline.png
 """
 
 from pathlib import Path
+from typing import cast
 
 from PIL import Image, ImageDraw, ImageFont
 
@@ -59,7 +60,7 @@ def _font(size: int, bold: bool = False, mono: bool = False) -> ImageFont.FreeTy
             return ImageFont.truetype(path, size * SCALE)
         except OSError:
             pass
-    return ImageFont.load_default()
+    return cast(ImageFont.FreeTypeFont, ImageFont.load_default())
 
 
 def _rbox(
@@ -69,8 +70,8 @@ def _rbox(
     y: int,
     w: int,
     h: int,
-    top: tuple,
-    bot: tuple,
+    top: tuple[int, int, int],
+    bot: tuple[int, int, int],
     r: int = 8,
 ) -> None:
     """Draw a gradient rounded rectangle onto img."""
@@ -104,7 +105,7 @@ def _text(
     y: int,
     t: str,
     size: int,
-    color: tuple,
+    color: tuple[int, int, int],
     bold: bool = False,
     mono: bool = False,
     anchor: str = "mm",
@@ -132,7 +133,13 @@ def _arrow(draw: ImageDraw.ImageDraw, x1: int, y: int, x2: int) -> None:
 
 
 def _sect(
-    draw: ImageDraw.ImageDraw, x: int, y: int, w: int, h: int, fill: tuple, border: tuple
+    draw: ImageDraw.ImageDraw,
+    x: int,
+    y: int,
+    w: int,
+    h: int,
+    fill: tuple[int, int, int],
+    border: tuple[int, int, int],
 ) -> None:
     draw.rounded_rectangle(
         [x * SCALE, y * SCALE, (x + w) * SCALE, (y + h) * SCALE],
@@ -229,7 +236,7 @@ def main() -> None:
     )
 
     # Scale down for anti-aliasing
-    out = img.resize((W // SCALE, H // SCALE), Image.LANCZOS)
+    out = img.resize((W // SCALE, H // SCALE), Image.Resampling.LANCZOS)
     out.save(OUTPUT_PATH, dpi=(192, 192))
     print(f"Saved: {OUTPUT_PATH}")
 
