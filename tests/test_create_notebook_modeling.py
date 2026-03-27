@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
+from common import modeling_notebook_slug
 from create_notebook_modeling import build_modeling_notebook
 from create_notebook_modeling import write_kernel_metadata as write_modeling_metadata
 
@@ -57,6 +58,7 @@ class TestMainCreateModelingNotebook:
         with (
             patch("sys.argv", ["create_notebook_modeling.py", "--pair", "USDJPY"]),
             patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path),
+            patch("create_notebook_modeling.load_public_kernels", return_value={modeling_notebook_slug("USDJPY")}),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
             create_notebook_modeling.main()

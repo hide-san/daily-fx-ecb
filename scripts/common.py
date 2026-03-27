@@ -52,6 +52,7 @@ ECB_RAW_PATH = Path("ecb_raw/all_currencies.csv")
 DATASETS_ROOT = Path("datasets")
 NOTEBOOKS_ROOT = Path("notebooks")
 PAIRS_FILE = Path("pairs.txt")
+PUBLIC_KERNELS_FILE = Path("public_kernels.txt")
 
 # ---------------------------------------------------------------------------
 # Kaggle identity
@@ -67,6 +68,16 @@ GITHUB_RAW_BASE_URL = "https://raw.githubusercontent.com/hide-san/daily-fx-ecb"
 # ---------------------------------------------------------------------------
 # Pair helpers
 # ---------------------------------------------------------------------------
+
+
+def load_public_kernels(path: Path = PUBLIC_KERNELS_FILE) -> set[str]:
+    """Return the set of Kaggle kernel slugs listed in public_kernels.txt.
+
+    Each non-blank, non-comment line is a slug.  Scripts call this to verify
+    their slug is explicitly approved before writing any files.
+    """
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return {line.strip() for line in lines if line.strip() and not line.startswith("#")}
 
 
 def load_pairs_file(path: Path = PAIRS_FILE) -> list[str]:

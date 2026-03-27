@@ -15,6 +15,7 @@ notebooks/pipeline/
 """
 
 import json
+import sys
 from typing import Any
 
 from common import (
@@ -24,6 +25,7 @@ from common import (
     code,
     dataset_slug,
     load_pairs_file,
+    load_public_kernels,
     pipeline_notebook_output_dir,
     pipeline_notebook_slug,
 )
@@ -78,6 +80,7 @@ def write_kernel_metadata() -> None:
         "kernel_type": "notebook",
         "enable_gpu": False,
         "enable_tpu": False,
+        "is_private": False,
         "enable_internet": True,  # Required: fetches KAGGLE_README.md from GitHub at runtime
         "dataset_sources": [dataset_slug(p) for p in load_pairs_file()],
         "competition_sources": [],
@@ -88,6 +91,11 @@ def write_kernel_metadata() -> None:
 
 
 def main() -> None:
+    slug = pipeline_notebook_slug()
+    if slug not in load_public_kernels():
+        print(f"ERROR: '{slug}' is not listed in public_kernels.txt.", file=sys.stderr)
+        sys.exit(1)
+
     output_dir = pipeline_notebook_output_dir()
 
     nb = build_pipeline_notebook()

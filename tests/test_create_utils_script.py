@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
+from common import utils_slug
 from create_utils_script import FX_UTILS_SOURCE
 from create_utils_script import write_kernel_metadata as write_utils_metadata
 
@@ -52,6 +53,7 @@ class TestMainCreateUtilsScript:
         summary = tmp_path / "summary.md"
         with (
             patch("create_utils_script.utils_output_dir", return_value=tmp_path),
+            patch("create_utils_script.load_public_kernels", return_value={utils_slug()}),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
             create_utils_script.main()

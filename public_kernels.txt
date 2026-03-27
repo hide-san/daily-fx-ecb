@@ -1,0 +1,123 @@
+# public_kernels.txt
+# ---------------------------------------------------------------------------
+# Explicit allowlist of Kaggle kernel slugs that this pipeline is permitted
+# to create and publish.
+#
+# Design intent
+# -------------
+# - Only slugs listed here are created and uploaded by the notebook pipeline.
+# - Every listed slug is pushed with is_private=False (public).
+# - A slug NOT in this file causes the create script to exit with an error,
+#   preventing accidental creation of unknown or unreviewed notebooks.
+# - To stop publishing a notebook: remove its slug from this list AND manually
+#   set it to private via the Kaggle GUI.  Removing from this list only
+#   prevents future re-creation; the existing Kaggle notebook is left as-is.
+#
+# When to edit this file
+# ----------------------
+# - Adding a new pair to pairs.txt: add the three per-pair slugs below.
+# - Retiring a pair: remove its slugs (the Kaggle notebooks are left as-is).
+# - Adding a new notebook kind: add its slug and update the create script.
+# ---------------------------------------------------------------------------
+
+# Shared kernels (one-off, not per-pair)
+hide-san/daily-fx-utils
+hide-san/daily-fx-ecb-pipeline-overview
+
+# Per-pair kernels
+# Format:
+#   hide-san/daily-fx-{base}-{quote}-eda-baseline-forecast
+#   hide-san/daily-fx-{base}-{quote}-arima-garch-modeling
+#   hide-san/daily-fx-{base}-{quote}-getting-started
+
+# --- Major pairs ---
+hide-san/daily-fx-usd-jpy-eda-baseline-forecast
+hide-san/daily-fx-usd-jpy-arima-garch-modeling
+hide-san/daily-fx-usd-jpy-getting-started
+
+# hide-san/daily-fx-eur-usd-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-usd-arima-garch-modeling# 
+# hide-san/daily-fx-eur-usd-getting-started# 
+# 
+# hide-san/daily-fx-gbp-usd-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-usd-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-usd-getting-started# 
+# 
+# hide-san/daily-fx-usd-chf-eda-baseline-forecast# 
+# hide-san/daily-fx-usd-chf-arima-garch-modeling# 
+# hide-san/daily-fx-usd-chf-getting-started# 
+# 
+# hide-san/daily-fx-aud-usd-eda-baseline-forecast# 
+# hide-san/daily-fx-aud-usd-arima-garch-modeling# 
+# hide-san/daily-fx-aud-usd-getting-started# 
+# 
+# hide-san/daily-fx-usd-cad-eda-baseline-forecast# 
+# hide-san/daily-fx-usd-cad-arima-garch-modeling# 
+# hide-san/daily-fx-usd-cad-getting-started# 
+# 
+# hide-san/daily-fx-nzd-usd-eda-baseline-forecast# 
+# hide-san/daily-fx-nzd-usd-arima-garch-modeling# 
+# hide-san/daily-fx-nzd-usd-getting-started# 
+# 
+# --- Euro crosses ---#
+# hide-san/daily-fx-eur-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-eur-jpy-getting-started# 
+# 
+# hide-san/daily-fx-eur-gbp-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-gbp-arima-garch-modeling# 
+# hide-san/daily-fx-eur-gbp-getting-started# 
+# 
+# hide-san/daily-fx-eur-chf-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-chf-arima-garch-modeling# 
+# hide-san/daily-fx-eur-chf-getting-started# 
+# 
+# hide-san/daily-fx-eur-aud-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-aud-arima-garch-modeling# 
+# hide-san/daily-fx-eur-aud-getting-started# 
+# 
+# hide-san/daily-fx-eur-cad-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-cad-arima-garch-modeling# 
+# hide-san/daily-fx-eur-cad-getting-started# 
+# 
+# hide-san/daily-fx-eur-nzd-eda-baseline-forecast# 
+# hide-san/daily-fx-eur-nzd-arima-garch-modeling# 
+# hide-san/daily-fx-eur-nzd-getting-started# 
+# 
+# --- Pound crosses ---#
+# hide-san/daily-fx-gbp-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-jpy-getting-started# 
+# 
+# hide-san/daily-fx-gbp-chf-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-chf-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-chf-getting-started# 
+# 
+# hide-san/daily-fx-gbp-aud-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-aud-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-aud-getting-started# 
+# 
+# hide-san/daily-fx-gbp-cad-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-cad-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-cad-getting-started# 
+# 
+# hide-san/daily-fx-gbp-nzd-eda-baseline-forecast# 
+# hide-san/daily-fx-gbp-nzd-arima-garch-modeling# 
+# hide-san/daily-fx-gbp-nzd-getting-started# 
+# 
+# --- Yen crosses ---#
+# hide-san/daily-fx-aud-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-aud-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-aud-jpy-getting-started# 
+# 
+# hide-san/daily-fx-cad-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-cad-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-cad-jpy-getting-started# 
+# 
+# hide-san/daily-fx-chf-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-chf-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-chf-jpy-getting-started# 
+# 
+# hide-san/daily-fx-nzd-jpy-eda-baseline-forecast# 
+# hide-san/daily-fx-nzd-jpy-arima-garch-modeling# 
+# hide-san/daily-fx-nzd-jpy-getting-started# 

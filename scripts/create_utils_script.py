@@ -16,10 +16,12 @@ notebooks/utils/
 """
 
 import json
+import sys
 
 from common import (
     UTILS_KERNEL_TITLE,
     append_github_summary,
+    load_public_kernels,
     utils_output_dir,
     utils_slug,
 )
@@ -203,6 +205,7 @@ def write_kernel_metadata() -> None:
         "code_file": "fx_utils.py",
         "language": "python",
         "kernel_type": "script",
+        "is_private": False,
         "util-script": True,
         "enable_gpu": False,
         "enable_internet": False,
@@ -222,6 +225,11 @@ def write_kernel_metadata() -> None:
 
 
 def main() -> None:
+    slug = utils_slug()
+    if slug not in load_public_kernels():
+        print(f"ERROR: '{slug}' is not listed in public_kernels.txt.", file=sys.stderr)
+        sys.exit(1)
+
     output_dir = utils_output_dir()
     script_path = output_dir / "fx_utils.py"
     script_path.write_text(FX_UTILS_SOURCE, encoding="utf-8")

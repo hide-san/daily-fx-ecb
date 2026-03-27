@@ -12,6 +12,7 @@ notebooks/<PAIR>/
 
 import argparse
 import json
+import sys
 from typing import Any
 
 from common import (
@@ -19,6 +20,7 @@ from common import (
     append_github_summary,
     code,
     dataset_slug,
+    load_public_kernels,
     md,
     notebook_output_dir,
     pair_display,
@@ -178,6 +180,7 @@ def write_kernel_metadata(pair: str) -> None:
         "code_file": f"{pair}_getting_started.ipynb",
         "language": "python",
         "kernel_type": "notebook",
+        "is_private": False,
         "enable_gpu": False,
         "enable_internet": False,
         "keywords": ["finance", "economics"],
@@ -203,6 +206,11 @@ def main() -> None:
     args = parser.parse_args()
     pair = args.pair.upper()
     base, quote = parse_pair(pair)
+
+    slug = getting_started_slug(pair)
+    if slug not in load_public_kernels():
+        print(f"ERROR: '{slug}' is not listed in public_kernels.txt.", file=sys.stderr)
+        sys.exit(1)
 
     output_dir = notebook_output_dir(pair)
 
