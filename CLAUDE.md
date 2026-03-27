@@ -27,6 +27,16 @@ pytest tests/ -k "calc_pair" -v
 
 Coverage minimum is 80% (enforced in CI). `create_cover.py` is excluded from coverage.
 
+## Before every commit
+
+Run the following and confirm all pass before committing:
+
+```bash
+ruff check scripts/ tests/
+ruff format --check scripts/ tests/
+pytest tests/ -q
+```
+
 ## Coding constraints
 
 - **Comments must be in English.** No Japanese or other non-ASCII languages in comments, docstrings, or string literals inside code.

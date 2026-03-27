@@ -46,7 +46,7 @@ def build_pipeline_notebook() -> dict[str, Any]:
             f'response = requests.get("{_CHANGELOG_URL}")\n'
             "response.raise_for_status()\n"
             "lines = [line for line in response.text.splitlines() if line.strip()]\n"
-            f"display(Markdown(\"\\n\".join(lines[:{_CHANGELOG_PREVIEW_LINES}])))\n"
+            f'display(Markdown("\\n".join(lines[:{_CHANGELOG_PREVIEW_LINES}])))\n'
         ),
     ]
 

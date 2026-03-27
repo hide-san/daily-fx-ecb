@@ -76,9 +76,7 @@ class TestMainCreatePipelineNotebook:
 
         summary = tmp_path / "summary.md"
         with (
-            patch(
-                "create_notebook_pipeline.pipeline_notebook_output_dir", return_value=tmp_path
-            ),
+            patch("create_notebook_pipeline.pipeline_notebook_output_dir", return_value=tmp_path),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
             create_notebook_pipeline.main()
