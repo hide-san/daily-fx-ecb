@@ -174,6 +174,12 @@ class TestGetSlug:
 
         assert _get_slug("USDJPY", "modeling") == modeling_notebook_slug("USDJPY")
 
+    def test_lgbm_returns_lgbm_slug(self) -> None:
+        from common import lgbm_notebook_slug
+        from upload_notebook import _get_slug
+
+        assert _get_slug("USDJPY", "lgbm") == lgbm_notebook_slug("USDJPY")
+
     def test_utils_returns_utils_slug(self) -> None:
         from common import utils_slug
         from upload_notebook import _get_slug

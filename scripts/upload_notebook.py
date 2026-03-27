@@ -1,10 +1,11 @@
 """
-scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|getting-started|utils|pipeline]
-========================================================================================================
+scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|lgbm|getting-started|utils|pipeline]
+==========================================================================================================
 Push one pair's notebook (or a shared kernel) to Kaggle Kernels.
 
 --kind eda              pushes the EDA notebook          (--pair required)
 --kind modeling         pushes the modeling notebook     (--pair required)
+--kind lgbm             pushes the LightGBM notebook     (--pair required)
 --kind getting-started  pushes the Getting Started notebook (--pair required)
 --kind utils            pushes the shared fx_utils.py    (--pair not required)
 --kind pipeline         pushes the pipeline overview notebook (--pair not required)
@@ -16,6 +17,8 @@ notebooks/<PAIR>/
     kernel-metadata-eda.json
     <PAIR>_modeling.ipynb
     kernel-metadata-modeling.json
+    <PAIR>_lgbm.ipynb
+    kernel-metadata-lgbm.json
     <PAIR>_getting_started.ipynb
     kernel-metadata-getting-started.json
 
@@ -39,6 +42,7 @@ from pathlib import Path
 from common import (
     NOTEBOOKS_ROOT,
     append_github_summary,
+    lgbm_notebook_slug,
     load_public_kernels,
     modeling_notebook_slug,
     notebook_slug,
@@ -56,6 +60,7 @@ from common import (
 _METADATA_FILE = {
     "eda": "kernel-metadata-eda.json",
     "modeling": "kernel-metadata-modeling.json",
+    "lgbm": "kernel-metadata-lgbm.json",
     "getting-started": "kernel-metadata-getting-started.json",
     "utils": "kernel-metadata-utils.json",
     "pipeline": "kernel-metadata-pipeline.json",
@@ -64,6 +69,7 @@ _METADATA_FILE = {
 _NOTEBOOK_FILE: dict[str, Callable[[str], str]] = {
     "eda": lambda pair: f"{pair}_eda.ipynb",
     "modeling": lambda pair: f"{pair}_modeling.ipynb",
+    "lgbm": lambda pair: f"{pair}_lgbm.ipynb",
     "getting-started": lambda pair: f"{pair}_getting_started.ipynb",
     "utils": lambda _: "fx_utils.py",
     "pipeline": lambda _: "pipeline_overview.ipynb",
@@ -83,6 +89,8 @@ def _get_slug(pair: str, kind: str) -> str:
         return notebook_slug(pair)
     elif kind == "modeling":
         return modeling_notebook_slug(pair)
+    elif kind == "lgbm":
+        return lgbm_notebook_slug(pair)
     elif kind == "getting-started":
         return getting_started_slug(pair)
     elif kind == "pipeline":
@@ -223,7 +231,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--kind",
-        choices=["eda", "modeling", "getting-started", "utils", "pipeline"],
+        choices=["eda", "modeling", "lgbm", "getting-started", "utils", "pipeline"],
         default="eda",
         help="Which asset to push (default: eda)",
     )
@@ -243,7 +251,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.kind not in ("utils", "pipeline") and not args.pair:
-        parser.error("--pair is required for --kind eda, modeling, and getting-started")
+        parser.error("--pair is required for --kind eda, modeling, lgbm, and getting-started")
 
     pair = args.pair.upper() if args.pair else args.kind.upper()
     slug = _get_slug(pair, args.kind)

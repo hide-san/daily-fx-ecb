@@ -123,6 +123,11 @@ def modeling_notebook_slug(pair: str) -> str:
     return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-arima-garch-modeling"
 
 
+def lgbm_notebook_slug(pair: str) -> str:
+    base, quote = parse_pair(pair)
+    return f"{KAGGLE_USER}/daily-fx-{base.lower()}-{quote.lower()}-lgbm-forecast"
+
+
 def dataset_title(pair: str) -> str:
     return f"Daily FX: {pair_display(pair)}"
 
@@ -133,6 +138,10 @@ def notebook_title(pair: str) -> str:
 
 def modeling_notebook_title(pair: str) -> str:
     return f"Daily FX: {pair_display(pair)} - ARIMA & GARCH Modeling"
+
+
+def lgbm_notebook_title(pair: str) -> str:
+    return f"Daily FX: {pair_display(pair)} - LightGBM Forecast"
 
 
 def series_search_url(resource: str) -> str:

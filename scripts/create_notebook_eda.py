@@ -19,6 +19,7 @@ from common import (
     append_github_summary,
     code,
     dataset_slug,
+    lgbm_notebook_slug,
     load_public_kernels,
     make_notebook,
     md,
@@ -165,13 +166,16 @@ plt.tight_layout()
 plt.show()"""),
         md(f"""## Next steps
 
-Ready to go further? The companion notebook applies more sophisticated models to this pair:
+Ready to go further? Two companion notebooks apply more sophisticated models to this pair:
 
 **[ARIMA / GARCH Modeling](https://www.kaggle.com/code/{modeling_notebook_slug(pair)})**
 
-- **ARIMA (AutoRegressive Integrated Moving Average) / SARIMA (Seasonal ARIMA)** -- capture autocorrelation in the return series *(covered in the modeling notebook above)*
-- **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity)** -- model time-varying volatility *(covered in the modeling notebook above)*
-- **LightGBM / XGBoost** -- use `ma_*`, `volatility_20d`, and calendar features *(coming soon)*
+- **ARIMA (AutoRegressive Integrated Moving Average) / SARIMA (Seasonal ARIMA)** -- capture autocorrelation in the return series
+- **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity)** -- model time-varying volatility
+
+**[LightGBM Forecast](https://www.kaggle.com/code/{lgbm_notebook_slug(pair)})**
+
+- **LightGBM** -- gradient-boosted trees using lag, moving-average (MA), volatility, and calendar features
 - **Multivariate** -- combine several pairs from other ECB datasets *(coming soon)*
 
 ---

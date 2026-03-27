@@ -7,14 +7,14 @@ name: Notebook Update Pipeline
 #   resolve        -- resolve pair list
 #   push-utils     -- generate & push shared fx_utils.py (once, not per-pair)
 #   push-pipeline  -- generate & push pipeline overview notebook (once, not per-pair)
-#   push-notebooks -- per-pair job: generates and pushes all 3 notebook kinds
-#                     in sequence (getting-started -> eda -> modeling).
+#   push-notebooks -- per-pair job: generates and pushes all 4 notebook kinds
+#                     in sequence (getting-started -> eda -> modeling -> lgbm).
 #                     max-parallel=3 keeps Kaggle CPU sessions <= 3.
 #   summary        -- write result table
 #
 # WARNING: KAGGLE CPU SESSION LIMIT -- do not change this structure without care:
 #   Kaggle limits the number of concurrent CPU kernel sessions.
-#   All 3 notebook kinds are pushed SEQUENTIALLY within each per-pair job so
+#   All 4 notebook kinds are pushed SEQUENTIALLY within each per-pair job so
 #   that concurrent sessions == max-parallel (currently 3).
 #   Splitting kinds into separate parallel jobs would multiply concurrency by
 #   the number of kinds and exceed the Kaggle CPU limit.
@@ -140,9 +140,9 @@ jobs:
           python scripts/upload_notebook.py --kind utils $DRY_RUN_FLAG
 
   # ==========================================================================
-  # Job 3: Push all notebooks per pair (getting-started -> eda -> modeling)
+  # Job 3: Push all notebooks per pair (getting-started -> eda -> modeling -> lgbm)
   #
-  # Pairs run in parallel (max-parallel=3).  Within each pair the three
+  # Pairs run in parallel (max-parallel=3).  Within each pair the four
   # notebook kinds are pushed sequentially so only one Kaggle CPU session
   # per pair is active at a time.  With max-parallel=3 the pipeline uses
   # at most 3 concurrent Kaggle sessions.
@@ -204,6 +204,20 @@ jobs:
           [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
           python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind modeling $DRY_RUN_FLAG
 
+      - name: Generate ${{ matrix.pair }} LightGBM notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: python scripts/create_notebook_lgbm.py --pair ${{ matrix.pair }}
+
+      - name: Push ${{ matrix.pair }} LightGBM notebook to Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --pair ${{ matrix.pair }} --kind lgbm $DRY_RUN_FLAG
+
       - name: Save notebooks as artifact on failure
         if: failure()
         uses: actions/upload-artifact@v4
@@ -232,7 +246,7 @@ jobs:
             echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
             echo "| Push pipeline   | ${{ needs.push-pipeline.result }} |"
             echo "| Push utils      | ${{ needs.push-utils.result }} |"
-            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs x 3 kinds) | ${{ needs.push-notebooks.result }} |"
+            echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs x 4 kinds) | ${{ needs.push-notebooks.result }} |"
             echo ""
             echo "**Pairs input**   : ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
             echo "**Dry run**       : ${{ github.event.inputs.dry_run || 'false' }}"

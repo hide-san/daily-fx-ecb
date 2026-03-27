@@ -28,96 +28,119 @@ daily-fx-ecb-pipeline-overview
 # Format:
 #   daily-fx-{base}-{quote}-eda-baseline-forecast
 #   daily-fx-{base}-{quote}-arima-garch-modeling
+#   daily-fx-{base}-{quote}-lgbm-forecast
 #   daily-fx-{base}-{quote}-getting-started
 
 # --- Major pairs ---
 daily-fx-usd-jpy-eda-baseline-forecast
 daily-fx-usd-jpy-arima-garch-modeling
+daily-fx-usd-jpy-lgbm-forecast
 daily-fx-usd-jpy-getting-started
 
-# daily-fx-eur-usd-eda-baseline-forecast# 
-# daily-fx-eur-usd-arima-garch-modeling# 
-# daily-fx-eur-usd-getting-started# 
-# 
-# daily-fx-gbp-usd-eda-baseline-forecast# 
-# daily-fx-gbp-usd-arima-garch-modeling# 
-# daily-fx-gbp-usd-getting-started# 
-# 
-# daily-fx-usd-chf-eda-baseline-forecast# 
-# daily-fx-usd-chf-arima-garch-modeling# 
-# daily-fx-usd-chf-getting-started# 
-# 
-# daily-fx-aud-usd-eda-baseline-forecast# 
-# daily-fx-aud-usd-arima-garch-modeling# 
-# daily-fx-aud-usd-getting-started# 
-# 
-# daily-fx-usd-cad-eda-baseline-forecast# 
-# daily-fx-usd-cad-arima-garch-modeling# 
-# daily-fx-usd-cad-getting-started# 
-# 
-# daily-fx-nzd-usd-eda-baseline-forecast# 
-# daily-fx-nzd-usd-arima-garch-modeling# 
-# daily-fx-nzd-usd-getting-started# 
-# 
-# --- Euro crosses ---#
-# daily-fx-eur-jpy-eda-baseline-forecast# 
-# daily-fx-eur-jpy-arima-garch-modeling# 
-# daily-fx-eur-jpy-getting-started# 
-# 
-# daily-fx-eur-gbp-eda-baseline-forecast# 
-# daily-fx-eur-gbp-arima-garch-modeling# 
-# daily-fx-eur-gbp-getting-started# 
-# 
-# daily-fx-eur-chf-eda-baseline-forecast# 
-# daily-fx-eur-chf-arima-garch-modeling# 
-# daily-fx-eur-chf-getting-started# 
-# 
-# daily-fx-eur-aud-eda-baseline-forecast# 
-# daily-fx-eur-aud-arima-garch-modeling# 
-# daily-fx-eur-aud-getting-started# 
-# 
-# daily-fx-eur-cad-eda-baseline-forecast# 
-# daily-fx-eur-cad-arima-garch-modeling# 
-# daily-fx-eur-cad-getting-started# 
-# 
-# daily-fx-eur-nzd-eda-baseline-forecast# 
-# daily-fx-eur-nzd-arima-garch-modeling# 
-# daily-fx-eur-nzd-getting-started# 
-# 
-# --- Pound crosses ---#
-# daily-fx-gbp-jpy-eda-baseline-forecast# 
-# daily-fx-gbp-jpy-arima-garch-modeling# 
-# daily-fx-gbp-jpy-getting-started# 
-# 
-# daily-fx-gbp-chf-eda-baseline-forecast# 
-# daily-fx-gbp-chf-arima-garch-modeling# 
-# daily-fx-gbp-chf-getting-started# 
-# 
-# daily-fx-gbp-aud-eda-baseline-forecast# 
-# daily-fx-gbp-aud-arima-garch-modeling# 
-# daily-fx-gbp-aud-getting-started# 
-# 
-# daily-fx-gbp-cad-eda-baseline-forecast# 
-# daily-fx-gbp-cad-arima-garch-modeling# 
-# daily-fx-gbp-cad-getting-started# 
-# 
-# daily-fx-gbp-nzd-eda-baseline-forecast# 
-# daily-fx-gbp-nzd-arima-garch-modeling# 
-# daily-fx-gbp-nzd-getting-started# 
-# 
-# --- Yen crosses ---#
-# daily-fx-aud-jpy-eda-baseline-forecast# 
-# daily-fx-aud-jpy-arima-garch-modeling# 
-# daily-fx-aud-jpy-getting-started# 
-# 
-# daily-fx-cad-jpy-eda-baseline-forecast# 
-# daily-fx-cad-jpy-arima-garch-modeling# 
-# daily-fx-cad-jpy-getting-started# 
-# 
-# daily-fx-chf-jpy-eda-baseline-forecast# 
-# daily-fx-chf-jpy-arima-garch-modeling# 
-# daily-fx-chf-jpy-getting-started# 
-# 
-# daily-fx-nzd-jpy-eda-baseline-forecast# 
-# daily-fx-nzd-jpy-arima-garch-modeling# 
-# daily-fx-nzd-jpy-getting-started# 
+# daily-fx-eur-usd-eda-baseline-forecast
+# daily-fx-eur-usd-arima-garch-modeling
+# daily-fx-eur-usd-lgbm-forecast
+# daily-fx-eur-usd-getting-started
+#
+# daily-fx-gbp-usd-eda-baseline-forecast
+# daily-fx-gbp-usd-arima-garch-modeling
+# daily-fx-gbp-usd-lgbm-forecast
+# daily-fx-gbp-usd-getting-started
+#
+# daily-fx-usd-chf-eda-baseline-forecast
+# daily-fx-usd-chf-arima-garch-modeling
+# daily-fx-usd-chf-lgbm-forecast
+# daily-fx-usd-chf-getting-started
+#
+# daily-fx-aud-usd-eda-baseline-forecast
+# daily-fx-aud-usd-arima-garch-modeling
+# daily-fx-aud-usd-lgbm-forecast
+# daily-fx-aud-usd-getting-started
+#
+# daily-fx-usd-cad-eda-baseline-forecast
+# daily-fx-usd-cad-arima-garch-modeling
+# daily-fx-usd-cad-lgbm-forecast
+# daily-fx-usd-cad-getting-started
+#
+# daily-fx-nzd-usd-eda-baseline-forecast
+# daily-fx-nzd-usd-arima-garch-modeling
+# daily-fx-nzd-usd-lgbm-forecast
+# daily-fx-nzd-usd-getting-started
+#
+# --- Euro crosses ---
+# daily-fx-eur-jpy-eda-baseline-forecast
+# daily-fx-eur-jpy-arima-garch-modeling
+# daily-fx-eur-jpy-lgbm-forecast
+# daily-fx-eur-jpy-getting-started
+#
+# daily-fx-eur-gbp-eda-baseline-forecast
+# daily-fx-eur-gbp-arima-garch-modeling
+# daily-fx-eur-gbp-lgbm-forecast
+# daily-fx-eur-gbp-getting-started
+#
+# daily-fx-eur-chf-eda-baseline-forecast
+# daily-fx-eur-chf-arima-garch-modeling
+# daily-fx-eur-chf-lgbm-forecast
+# daily-fx-eur-chf-getting-started
+#
+# daily-fx-eur-aud-eda-baseline-forecast
+# daily-fx-eur-aud-arima-garch-modeling
+# daily-fx-eur-aud-lgbm-forecast
+# daily-fx-eur-aud-getting-started
+#
+# daily-fx-eur-cad-eda-baseline-forecast
+# daily-fx-eur-cad-arima-garch-modeling
+# daily-fx-eur-cad-lgbm-forecast
+# daily-fx-eur-cad-getting-started
+#
+# daily-fx-eur-nzd-eda-baseline-forecast
+# daily-fx-eur-nzd-arima-garch-modeling
+# daily-fx-eur-nzd-lgbm-forecast
+# daily-fx-eur-nzd-getting-started
+#
+# --- Pound crosses ---
+# daily-fx-gbp-jpy-eda-baseline-forecast
+# daily-fx-gbp-jpy-arima-garch-modeling
+# daily-fx-gbp-jpy-lgbm-forecast
+# daily-fx-gbp-jpy-getting-started
+#
+# daily-fx-gbp-chf-eda-baseline-forecast
+# daily-fx-gbp-chf-arima-garch-modeling
+# daily-fx-gbp-chf-lgbm-forecast
+# daily-fx-gbp-chf-getting-started
+#
+# daily-fx-gbp-aud-eda-baseline-forecast
+# daily-fx-gbp-aud-arima-garch-modeling
+# daily-fx-gbp-aud-lgbm-forecast
+# daily-fx-gbp-aud-getting-started
+#
+# daily-fx-gbp-cad-eda-baseline-forecast
+# daily-fx-gbp-cad-arima-garch-modeling
+# daily-fx-gbp-cad-lgbm-forecast
+# daily-fx-gbp-cad-getting-started
+#
+# daily-fx-gbp-nzd-eda-baseline-forecast
+# daily-fx-gbp-nzd-arima-garch-modeling
+# daily-fx-gbp-nzd-lgbm-forecast
+# daily-fx-gbp-nzd-getting-started
+#
+# --- Yen crosses ---
+# daily-fx-aud-jpy-eda-baseline-forecast
+# daily-fx-aud-jpy-arima-garch-modeling
+# daily-fx-aud-jpy-lgbm-forecast
+# daily-fx-aud-jpy-getting-started
+#
+# daily-fx-cad-jpy-eda-baseline-forecast
+# daily-fx-cad-jpy-arima-garch-modeling
+# daily-fx-cad-jpy-lgbm-forecast
+# daily-fx-cad-jpy-getting-started
+#
+# daily-fx-chf-jpy-eda-baseline-forecast
+# daily-fx-chf-jpy-arima-garch-modeling
+# daily-fx-chf-jpy-lgbm-forecast
+# daily-fx-chf-jpy-getting-started
+#
+# daily-fx-nzd-jpy-eda-baseline-forecast
+# daily-fx-nzd-jpy-arima-garch-modeling
+# daily-fx-nzd-jpy-lgbm-forecast
+# daily-fx-nzd-jpy-getting-started
