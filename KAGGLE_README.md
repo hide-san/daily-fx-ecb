@@ -63,13 +63,7 @@ Every dataset passes five automated checks before upload:
 
 ## Pipeline architecture
 
-```
-ECB API (15:00 UTC)
-  └─ fetch_ecb.py          →  ecb_raw/all_currencies.csv
-       └─ calc_pair.py     →  datasets/{PAIR}/{PAIR}.csv
-            └─ validate_pair.py          (quality gate)
-                 └─ upload_dataset.py   →  Kaggle dataset
-```
+![Pipeline flow diagram](https://raw.githubusercontent.com/hide-san/daily-fx-ecb/main/docs/pipeline.png)
 
 The pipeline runs on GitHub Actions every weekday at 15:30 UTC,
 shortly after the ECB publishes its daily reference rates.
