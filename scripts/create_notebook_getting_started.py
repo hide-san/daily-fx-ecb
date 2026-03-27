@@ -23,6 +23,7 @@ from common import (
     notebook_output_dir,
     pair_display,
     parse_pair,
+    pipeline_notebook_slug,
     series_search_url,
     utils_slug,
 )
@@ -80,6 +81,7 @@ In just a few cells you will:
 |---|---|
 | All datasets  | {series_search_url("datasets")} |
 | All notebooks | {series_search_url("code")} |
+| Pipeline overview | https://www.kaggle.com/code/{pipeline_notebook_slug()} |
 
 ---
 """),

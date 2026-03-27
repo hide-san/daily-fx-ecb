@@ -26,6 +26,7 @@ from common import (
     notebook_title,
     pair_display,
     parse_pair,
+    pipeline_notebook_slug,
     series_search_url,
     utils_slug,
 )
@@ -53,6 +54,7 @@ def build_modeling_notebook(pair: str, base: str, quote: str) -> dict[str, Any]:
 |---|---|
 | All datasets  | {series_search_url("datasets")} |
 | All notebooks | {series_search_url("code")} |
+| Pipeline overview | https://www.kaggle.com/code/{pipeline_notebook_slug()} |
 
 ---
 """),
