@@ -9,12 +9,15 @@ import itertools
 import json
 import os
 import sys
-from pathlib import Path
 
 import pandas as pd
-from common import ECB_RAW_PATH, GITHUB_MATRIX_LIMIT, append_github_summary
-
-PAIRS_FILE = Path("pairs.txt")
+from common import (
+    ECB_RAW_PATH,
+    GITHUB_MATRIX_LIMIT,
+    PAIRS_FILE,
+    append_github_summary,
+    load_pairs_file,
+)
 
 
 def load_available_currencies() -> list[str]:
@@ -24,17 +27,6 @@ def load_available_currencies() -> list[str]:
 
 def all_pairs(currencies: list[str]) -> list[str]:
     return [f"{b}{q}" for b, q in itertools.permutations(currencies, 2)]
-
-
-def load_pairs_file(path: Path) -> list[str]:
-    lines = path.read_text(encoding="utf-8").splitlines()
-    return list(
-        dict.fromkeys(
-            line.strip().upper()
-            for line in lines
-            if line.strip() and not line.strip().startswith("#")
-        )
-    )
 
 
 def parse_pair_input(raw: str) -> list[str]:

@@ -15,6 +15,7 @@ from pathlib import Path
 from common import (
     DATASETS_ROOT,
     append_github_summary,
+    dataset_slug,
     run_command,
 )
 
@@ -88,8 +89,6 @@ def wait_until_ready(
     if dry_run:
         print(f"[dry-run] Skipping wait for {pair}.")
         return True
-
-    from common import dataset_slug
 
     slug = dataset_slug(pair)
     start = time.monotonic()

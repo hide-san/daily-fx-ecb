@@ -58,7 +58,7 @@ class TestPushNotebookMissingFiles:
     def test_missing_notebook_file_returns_false(self, tmp_path: Path) -> None:
         pair_dir = tmp_path / "USDJPY"
         pair_dir.mkdir()
-        (pair_dir / "kernel-metadata.json").touch()
+        (pair_dir / "kernel-metadata-eda.json").touch()
         # notebook file (.ipynb) is missing
         with patch("upload_notebook.NOTEBOOKS_ROOT", tmp_path):
             result = push_notebook("USDJPY", "eda", dry_run=False)

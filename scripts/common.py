@@ -64,6 +64,7 @@ KAGGLE_USER = (
 
 GITHUB_MATRIX_LIMIT = 256
 GITHUB_RAW_BASE_URL = "https://raw.githubusercontent.com/hide-san/daily-fx-ecb"
+KAGGLE_KEYWORDS: list[str] = ["finance", "economics"]
 
 # ---------------------------------------------------------------------------
 # Pair helpers
@@ -215,6 +216,23 @@ def validate_kaggle_metadata(title: str, subtitle: str, keywords: list[str]) -> 
 # ---------------------------------------------------------------------------
 
 
+def make_notebook(cells: list[dict[str, Any]]) -> dict[str, Any]:
+    """Return a minimal nbformat v4 notebook dict with the given cells."""
+    return {
+        "nbformat": 4,
+        "nbformat_minor": 5,
+        "metadata": {
+            "kernelspec": {
+                "display_name": "Python 3",
+                "language": "python",
+                "name": "python3",
+            },
+            "language_info": {"name": "python", "version": "3.11.0"},
+        },
+        "cells": cells,
+    }
+
+
 def md(source: str) -> dict[str, Any]:
     import hashlib
 
@@ -237,6 +255,42 @@ def code(source: str) -> dict[str, Any]:
         "outputs": [],
         "source": source,
     }
+
+
+# ---------------------------------------------------------------------------
+# Shared notebook kernel metadata writer
+# ---------------------------------------------------------------------------
+
+
+def write_notebook_kernel_metadata(
+    output_dir: Path,
+    filename: str,
+    id: str,
+    title: str,
+    code_file: str,
+    enable_internet: bool,
+    dataset_sources: list[str],
+    kernel_sources: list[str],
+) -> None:
+    """Write a kernel-metadata JSON file for a standard notebook kernel."""
+    import json
+
+    metadata = {
+        "id": id,
+        "title": title,
+        "code_file": code_file,
+        "language": "python",
+        "kernel_type": "notebook",
+        "is_private": False,
+        "enable_gpu": False,
+        "enable_internet": enable_internet,
+        "keywords": KAGGLE_KEYWORDS,
+        "dataset_sources": dataset_sources,
+        "competition_sources": [],
+        "kernel_sources": kernel_sources,
+    }
+    with open(output_dir / filename, "w", encoding="utf-8") as fh:
+        json.dump(metadata, fh, indent=2)
 
 
 # ---------------------------------------------------------------------------

@@ -7,11 +7,11 @@ from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
+from common import load_pairs_file
 from resolve_pairs import (
     all_pairs,
     filter_valid_pairs,
     load_available_currencies,
-    load_pairs_file,
     parse_pair_input,
 )
 

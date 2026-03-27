@@ -20,6 +20,7 @@ from common import (
     code,
     dataset_slug,
     load_public_kernels,
+    make_notebook,
     md,
     notebook_output_dir,
     notebook_slug,
@@ -29,6 +30,7 @@ from common import (
     pipeline_notebook_slug,
     series_search_url,
     utils_slug,
+    write_notebook_kernel_metadata,
 )
 
 # ---------------------------------------------------------------------------
@@ -158,19 +160,7 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 """),
     ]
 
-    return {
-        "nbformat": 4,
-        "nbformat_minor": 5,
-        "metadata": {
-            "kernelspec": {
-                "display_name": "Python 3",
-                "language": "python",
-                "name": "python3",
-            },
-            "language_info": {"name": "python", "version": "3.11.0"},
-        },
-        "cells": cells,
-    }
+    return make_notebook(cells)
 
 
 # ---------------------------------------------------------------------------
@@ -179,23 +169,16 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 
 
 def write_kernel_metadata(pair: str) -> None:
-    metadata = {
-        "id": notebook_slug(pair),
-        "title": notebook_title(pair),
-        "code_file": f"{pair}_eda.ipynb",
-        "language": "python",
-        "kernel_type": "notebook",
-        "is_private": False,
-        "enable_gpu": False,
-        "enable_internet": False,
-        "keywords": ["finance", "economics"],
-        "dataset_sources": [dataset_slug(pair)],
-        "competition_sources": [],
-        "kernel_sources": [utils_slug()],
-    }
-    output_dir = notebook_output_dir(pair)
-    with open(output_dir / "kernel-metadata.json", "w", encoding="utf-8") as fh:
-        json.dump(metadata, fh, indent=2)
+    write_notebook_kernel_metadata(
+        output_dir=notebook_output_dir(pair),
+        filename="kernel-metadata-eda.json",
+        id=notebook_slug(pair),
+        title=notebook_title(pair),
+        code_file=f"{pair}_eda.ipynb",
+        enable_internet=False,
+        dataset_sources=[dataset_slug(pair)],
+        kernel_sources=[utils_slug()],
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -226,7 +209,7 @@ def main() -> None:
     write_kernel_metadata(pair)
 
     print(f"Notebook : {nb_path}")
-    print(f"Metadata : {output_dir / 'kernel-metadata.json'}")
+    print(f"Metadata : {output_dir / 'kernel-metadata-eda.json'}")
     append_github_summary(f"| {pair} notebook | generated |\n")
 
 

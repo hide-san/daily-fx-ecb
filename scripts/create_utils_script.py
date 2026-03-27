@@ -19,6 +19,7 @@ import json
 import sys
 
 from common import (
+    KAGGLE_KEYWORDS,
     UTILS_KERNEL_TITLE,
     append_github_summary,
     load_public_kernels,
@@ -209,7 +210,7 @@ def write_kernel_metadata() -> None:
         "util-script": True,
         "enable_gpu": False,
         "enable_internet": False,
-        "keywords": ["finance", "economics"],
+        "keywords": KAGGLE_KEYWORDS,
         "dataset_sources": [],
         "competition_sources": [],
         "kernel_sources": [],

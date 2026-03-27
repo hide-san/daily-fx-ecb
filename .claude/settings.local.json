@@ -1,4 +1,19 @@
 {
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/c/tmp/PycharmProjects/daily-fx-ecb/.venv/Scripts/python /c/tmp/PycharmProjects/daily-fx-ecb/.claude/check_coverage_hook.py",
+            "timeout": 120,
+            "statusMessage": "Checking test coverage..."
+          }
+        ]
+      }
+    ]
+  },
   "permissions": {
     "allow": [
       "Bash(python:*)",
@@ -20,7 +35,10 @@
       "Bash(pytest tests/ -q)",
       "Bash(.venv/Scripts/python -:*)",
       "Bash(.venv/Scripts/python scripts/create_pipeline_diagram.py)",
-      "Bash(pytest tests/test_upload_dataset.py -q)"
+      "Bash(pytest tests/test_upload_dataset.py -q)",
+      "Bash(pytest tests/test_upload_notebook.py -q)",
+      "Skill(update-config)",
+      "Skill(update-config:*)"
     ]
   }
 }

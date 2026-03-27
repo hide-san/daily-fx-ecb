@@ -40,19 +40,19 @@ class TestWriteKernelMetadataEda:
     def test_creates_metadata_file(self, tmp_path: Path) -> None:
         with patch("create_notebook_eda.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
-        assert (tmp_path / "kernel-metadata.json").exists()
+        assert (tmp_path / "kernel-metadata-eda.json").exists()
 
     def test_metadata_has_required_keys(self, tmp_path: Path) -> None:
         with patch("create_notebook_eda.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
-        meta = json.loads((tmp_path / "kernel-metadata.json").read_text())
+        meta = json.loads((tmp_path / "kernel-metadata-eda.json").read_text())
         for key in ("id", "title", "code_file", "language", "kernel_type"):
             assert key in meta, f"missing key: {key}"
 
     def test_code_file_is_eda_notebook(self, tmp_path: Path) -> None:
         with patch("create_notebook_eda.notebook_output_dir", return_value=tmp_path):
             write_eda_metadata("USDJPY")
-        meta = json.loads((tmp_path / "kernel-metadata.json").read_text())
+        meta = json.loads((tmp_path / "kernel-metadata-eda.json").read_text())
         assert meta["code_file"] == "USDJPY_eda.ipynb"
 
 
@@ -71,4 +71,4 @@ class TestMainCreateNotebook:
         ):
             create_notebook_eda.main()
         assert (tmp_path / "USDJPY_eda.ipynb").exists()
-        assert (tmp_path / "kernel-metadata.json").exists()
+        assert (tmp_path / "kernel-metadata-eda.json").exists()

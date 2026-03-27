@@ -20,6 +20,7 @@ from common import (
     code,
     dataset_slug,
     load_public_kernels,
+    make_notebook,
     md,
     modeling_notebook_slug,
     modeling_notebook_title,
@@ -31,6 +32,7 @@ from common import (
     pipeline_notebook_slug,
     series_search_url,
     utils_slug,
+    write_notebook_kernel_metadata,
 )
 
 
@@ -213,39 +215,20 @@ Source: (c) European Central Bank -- https://data.ecb.europa.eu
 """),
     ]
 
-    return {
-        "nbformat": 4,
-        "nbformat_minor": 5,
-        "metadata": {
-            "kernelspec": {
-                "display_name": "Python 3",
-                "language": "python",
-                "name": "python3",
-            },
-            "language_info": {"name": "python", "version": "3.11.0"},
-        },
-        "cells": cells,
-    }
+    return make_notebook(cells)
 
 
 def write_kernel_metadata(pair: str) -> None:
-    metadata = {
-        "id": modeling_notebook_slug(pair),
-        "title": modeling_notebook_title(pair),
-        "code_file": f"{pair}_modeling.ipynb",
-        "language": "python",
-        "kernel_type": "notebook",
-        "is_private": False,
-        "enable_gpu": False,
-        "enable_internet": True,
-        "keywords": ["finance", "economics"],
-        "dataset_sources": [dataset_slug(pair)],
-        "competition_sources": [],
-        "kernel_sources": [utils_slug()],
-    }
-    output_dir = notebook_output_dir(pair)
-    with open(output_dir / "kernel-metadata-modeling.json", "w", encoding="utf-8") as fh:
-        json.dump(metadata, fh, indent=2)
+    write_notebook_kernel_metadata(
+        output_dir=notebook_output_dir(pair),
+        filename="kernel-metadata-modeling.json",
+        id=modeling_notebook_slug(pair),
+        title=modeling_notebook_title(pair),
+        code_file=f"{pair}_modeling.ipynb",
+        enable_internet=True,
+        dataset_sources=[dataset_slug(pair)],
+        kernel_sources=[utils_slug()],
+    )
 
 
 def main() -> None:

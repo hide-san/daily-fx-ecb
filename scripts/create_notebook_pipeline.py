@@ -26,6 +26,7 @@ from common import (
     dataset_slug,
     load_pairs_file,
     load_public_kernels,
+    make_notebook,
     pipeline_notebook_output_dir,
     pipeline_notebook_slug,
 )
@@ -54,19 +55,7 @@ def build_pipeline_notebook() -> dict[str, Any]:
         ),
     ]
 
-    return {
-        "nbformat": 4,
-        "nbformat_minor": 5,
-        "metadata": {
-            "kernelspec": {
-                "display_name": "Python 3",
-                "language": "python",
-                "name": "python3",
-            },
-            "language_info": {"name": "python", "version": "3.11.0"},
-        },
-        "cells": cells,
-    }
+    return make_notebook(cells)
 
 
 def write_kernel_metadata() -> None:

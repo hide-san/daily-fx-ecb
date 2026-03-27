@@ -13,7 +13,7 @@ Input
 -----
 notebooks/<PAIR>/
     <PAIR>_eda.ipynb
-    kernel-metadata.json
+    kernel-metadata-eda.json
     <PAIR>_modeling.ipynb
     kernel-metadata-modeling.json
     <PAIR>_getting_started.ipynb
@@ -54,7 +54,7 @@ from common import (
 # ---------------------------------------------------------------------------
 
 _METADATA_FILE = {
-    "eda": "kernel-metadata.json",
+    "eda": "kernel-metadata-eda.json",
     "modeling": "kernel-metadata-modeling.json",
     "getting-started": "kernel-metadata-getting-started.json",
     "utils": "kernel-metadata-utils.json",
