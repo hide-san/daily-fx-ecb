@@ -48,6 +48,13 @@ on:
         type: choice
         options: ["false", "true"]
 
+      push_pipeline:
+        description: "Set to true to also push the pipeline overview notebook."
+        required: false
+        default: "false"
+        type: choice
+        options: ["false", "true"]
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -86,6 +93,7 @@ jobs:
   push-pipeline:
     name: "Push Pipeline Overview Notebook"
     runs-on: ubuntu-latest
+    if: github.event.inputs.push_pipeline == 'true'
 
     steps:
       - uses: actions/checkout@v4
@@ -226,6 +234,7 @@ jobs:
             echo "| Push utils      | ${{ needs.push-utils.result }} |"
             echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs x 3 kinds) | ${{ needs.push-notebooks.result }} |"
             echo ""
-            echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
-            echo "**Dry run**    : ${{ github.event.inputs.dry_run || 'false' }}"
+            echo "**Pairs input**   : ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
+            echo "**Dry run**       : ${{ github.event.inputs.dry_run || 'false' }}"
+            echo "**Push pipeline** : ${{ github.event.inputs.push_pipeline || 'false' }}"
           } >> "$GITHUB_STEP_SUMMARY"
