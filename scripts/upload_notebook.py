@@ -39,6 +39,7 @@ from pathlib import Path
 from common import (
     NOTEBOOKS_ROOT,
     append_github_summary,
+    load_public_kernels,
     modeling_notebook_slug,
     notebook_slug,
     pipeline_notebook_output_dir,
@@ -245,6 +246,11 @@ def main() -> None:
         parser.error("--pair is required for --kind eda, modeling, and getting-started")
 
     pair = args.pair.upper() if args.pair else args.kind.upper()
+    slug = _get_slug(pair, args.kind)
+    if slug not in load_public_kernels():
+        print(f"Skipping '{slug}': not listed in public_kernels.txt.")
+        sys.exit(0)
+
     success = push_notebook(pair, kind=args.kind, dry_run=args.dry_run)
     status = "success" if success else "FAILED"
     append_github_summary(f"| {args.kind} {pair} | {status} |\n")
