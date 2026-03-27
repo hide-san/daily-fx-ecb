@@ -169,10 +169,10 @@ Ready to go further? The companion notebook applies more sophisticated models to
 
 **[ARIMA / GARCH Modeling](https://www.kaggle.com/code/{modeling_notebook_slug(pair)})**
 
-- **ARIMA (AutoRegressive Integrated Moving Average) / SARIMA (Seasonal ARIMA)** -- capture autocorrelation in the return series
-- **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity)** -- model time-varying volatility
-- **LightGBM / XGBoost** -- use `ma_*`, `volatility_20d`, and calendar features
-- **Multivariate** -- combine several pairs from other ECB datasets
+- **ARIMA (AutoRegressive Integrated Moving Average) / SARIMA (Seasonal ARIMA)** -- capture autocorrelation in the return series *(covered in the modeling notebook above)*
+- **GARCH (Generalized AutoRegressive Conditional Heteroskedasticity)** -- model time-varying volatility *(covered in the modeling notebook above)*
+- **LightGBM / XGBoost** -- use `ma_*`, `volatility_20d`, and calendar features *(coming soon)*
+- **Multivariate** -- combine several pairs from other ECB datasets *(coming soon)*
 
 ---
 
