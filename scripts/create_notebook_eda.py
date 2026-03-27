@@ -64,25 +64,16 @@ from pathlib import Path
 import sys
 
 # Shared Daily FX utilities
-from daily_fx_utils import (
-    read_csv,
-    apply_plot_style,
-    FEATURE_COLUMNS,
-    COLOR_RATE,
-    COLOR_SIGNAL,
-    COLOR_MUTED,
-    get_logger,
-    print_summary,
-)
+import daily_fx_utils as fu
 
-apply_plot_style()
-log = get_logger()"""),
-        code(f"""df = read_csv("{pair}")
-print_summary("{pair}", df)
+fu.apply_plot_style()
+log = fu.get_logger()"""),
+        code(f"""df = fu.read_csv("{pair}")
+fu.print_summary("{pair}", df)
 df.tail()"""),
         md("## Time series"),
         code(f"""fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
+ax.plot(df["date"], df["rate"], linewidth=0.8, color=fu.COLOR_RATE)
 ax.set_title("{display} spot rate (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
 ax.xaxis.set_major_locator(mdates.YearLocator(5))
@@ -91,9 +82,9 @@ plt.tight_layout()
 plt.show()"""),
         md("## Moving averages"),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(df["date"], df["rate"],   linewidth=0.6, color=COLOR_MUTED,  label="spot")
-ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color=COLOR_RATE,   label="21-day MA")
-ax.plot(df["date"], df["ma_63d"], linewidth=1.4, color=COLOR_SIGNAL, label="63-day MA")
+ax.plot(df["date"], df["rate"],   linewidth=0.6, color=fu.COLOR_MUTED,  label="spot")
+ax.plot(df["date"], df["ma_21d"], linewidth=1.2, color=fu.COLOR_RATE,   label="21-day MA")
+ax.plot(df["date"], df["ma_63d"], linewidth=1.4, color=fu.COLOR_SIGNAL, label="63-day MA")
 ax.set_title("Spot rate with moving averages")
 ax.legend()
 plt.tight_layout()
@@ -102,13 +93,13 @@ plt.show()"""),
         code("""returns = df["daily_return_pct"].dropna()
 
 fig, axes = plt.subplots(1, 2, figsize=(12, 4))
-axes[0].hist(returns, bins=80, color=COLOR_RATE, edgecolor="white", linewidth=0.3)
+axes[0].hist(returns, bins=80, color=fu.COLOR_RATE, edgecolor="white", linewidth=0.3)
 axes[0].set_title("Histogram of daily returns (%)")
 axes[0].set_xlabel("Return (%)")
 
-axes[1].plot(df["date"], df["log_return"], linewidth=0.5, color=COLOR_RATE, alpha=0.7)
+axes[1].plot(df["date"], df["log_return"], linewidth=0.5, color=fu.COLOR_RATE, alpha=0.7)
 axes[1].set_title("Log returns over time")
-axes[1].axhline(0, color=COLOR_SIGNAL, linewidth=0.8, linestyle="--")
+axes[1].axhline(0, color=fu.COLOR_SIGNAL, linewidth=0.8, linestyle="--")
 
 plt.tight_layout()
 plt.show()
@@ -119,8 +110,8 @@ print(f"Skew : {returns.skew():.4f}")
 print(f"Kurt : {returns.kurtosis():.4f}")"""),
         md("## Rolling volatility (20-day)"),
         code("""fig, ax = plt.subplots(figsize=(12, 4))
-ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=COLOR_SIGNAL)
-ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color=COLOR_SIGNAL)
+ax.fill_between(df["date"], df["volatility_20d"], alpha=0.4, color=fu.COLOR_SIGNAL)
+ax.plot(df["date"], df["volatility_20d"], linewidth=0.8, color=fu.COLOR_SIGNAL)
 ax.set_title("20-day rolling volatility of daily returns")
 ax.set_ylabel("Std of daily return (%)")
 plt.tight_layout()
@@ -142,8 +133,8 @@ print(f"Baseline RMSE : {rmse:.6f}")
 print(f"Baseline MAE  : {mae:.6f}")
 
 fig, ax = plt.subplots(figsize=(12, 4))
-ax.plot(test["date"], test["rate"],  linewidth=1.0, color=COLOR_RATE,   label="actual")
-ax.plot(test["date"], test_pred,     linewidth=1.0, color=COLOR_SIGNAL,
+ax.plot(test["date"], test["rate"],  linewidth=1.0, color=fu.COLOR_RATE,   label="actual")
+ax.plot(test["date"], test_pred,     linewidth=1.0, color=fu.COLOR_SIGNAL,
         linestyle="--", label="rolling-mean forecast")
 ax.set_title("Actual vs rolling-mean forecast (last 2 years)")
 ax.legend()

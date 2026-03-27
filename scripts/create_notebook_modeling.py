@@ -68,28 +68,19 @@ from pathlib import Path
 import sys
 
 # Shared Daily FX utilities
-from daily_fx_utils import (
-    read_csv,
-    apply_plot_style,
-    FEATURE_COLUMNS,
-    COLOR_RATE,
-    COLOR_SIGNAL,
-    COLOR_MUTED,
-    get_logger,
-    print_summary,
-)
+import daily_fx_utils as fu
 
 from statsmodels.tsa.stattools import adfuller
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 from statsmodels.tsa.arima.model import ARIMA
 from arch import arch_model
 
-apply_plot_style()
-log = get_logger()"""),
+fu.apply_plot_style()
+log = fu.get_logger()"""),
         md("## Load data"),
-        code(f"""df = read_csv("{pair}")
+        code(f"""df = fu.read_csv("{pair}")
 returns = df["log_return"].dropna().reset_index(drop=True)
-print_summary("{pair}", df)
+fu.print_summary("{pair}", df)
 df.tail()"""),
         md("""## Stationarity check (ADF test)
 
@@ -139,15 +130,15 @@ rate_ci_high = last_rate * np.exp(fc_ci.iloc[:, 1].cumsum())
 fig, ax = plt.subplots(figsize=(12, 4))
 actual_tail = df.tail(90)
 ax.plot(actual_tail["date"], actual_tail["rate"],
-        color=COLOR_RATE, linewidth=1.0, label="actual")
+        color=fu.COLOR_RATE, linewidth=1.0, label="actual")
 fc_dates = pd.date_range(
     start=df["date"].max() + pd.Timedelta(days=1),
     periods=HORIZON, freq="B"
 )
-ax.plot(fc_dates, rate_fc, color=COLOR_SIGNAL, linestyle="--",
+ax.plot(fc_dates, rate_fc, color=fu.COLOR_SIGNAL, linestyle="--",
         linewidth=1.2, label="ARIMA forecast")
 ax.fill_between(fc_dates, rate_ci_low, rate_ci_high,
-                color=COLOR_SIGNAL, alpha=0.15, label="95% CI")
+                color=fu.COLOR_SIGNAL, alpha=0.15, label="95% CI")
 ax.set_title(f"{{HORIZON}}-day {display} rate forecast (ARIMA)")
 ax.set_ylabel("{quote} per {base}")
 ax.legend()
@@ -160,12 +151,12 @@ print(f"ARIMA RMSE (log returns, {{HORIZON}}-day) : {{rmse:.6f}}")"""),
 """),
         code(f"""fig, axes = plt.subplots(2, 1, figsize=(12, 6), sharex=True)
 axes[0].plot(df["date"], df["log_return"],
-             linewidth=0.5, color=COLOR_RATE, alpha=0.8)
+             linewidth=0.5, color=fu.COLOR_RATE, alpha=0.8)
 axes[0].set_title("{display} log returns")
-axes[0].axhline(0, color=COLOR_SIGNAL, linewidth=0.6, linestyle="--")
+axes[0].axhline(0, color=fu.COLOR_SIGNAL, linewidth=0.6, linestyle="--")
 
 axes[1].plot(df["date"], df["volatility_20d"],
-             linewidth=0.8, color=COLOR_SIGNAL)
+             linewidth=0.8, color=fu.COLOR_SIGNAL)
 axes[1].set_title("20-day rolling volatility")
 plt.tight_layout()
 plt.show()"""),
@@ -178,11 +169,11 @@ train_dates = df.loc[df["date"] < TRAIN_CUTOFF, "date"].reset_index(drop=True)
 
 fig, ax = plt.subplots(figsize=(12, 4))
 ax.plot(train_dates, cond_vol,
-        color=COLOR_SIGNAL, linewidth=0.8, label="GARCH conditional vol")
+        color=fu.COLOR_SIGNAL, linewidth=0.8, label="GARCH conditional vol")
 ax.plot(
     df.loc[df["date"] < TRAIN_CUTOFF, "date"],
     df.loc[df["date"] < TRAIN_CUTOFF, "volatility_20d"] / 100,
-    color=COLOR_RATE, linewidth=0.8, alpha=0.6, label="20-day realised vol"
+    color=fu.COLOR_RATE, linewidth=0.8, alpha=0.6, label="20-day realised vol"
 )
 ax.set_title("Conditional vs realised volatility")
 ax.set_ylabel("Volatility (log return std)")
@@ -195,7 +186,7 @@ fc_vol   = np.sqrt(garch_fc.variance.values[-1]) / 100
 
 fig, ax = plt.subplots(figsize=(10, 4))
 ax.bar(range(1, HORIZON + 1), fc_vol,
-       color=COLOR_SIGNAL, alpha=0.7, width=0.7)
+       color=fu.COLOR_SIGNAL, alpha=0.7, width=0.7)
 ax.set_title(f"GARCH(1,1) {HORIZON}-step volatility forecast")
 ax.set_xlabel("Days ahead")
 ax.set_ylabel("Forecast conditional std (log returns)")

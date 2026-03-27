@@ -36,7 +36,7 @@ Attach this Utility Script as a kernel source to any Daily FX notebook.
 
     import sys
     sys.path.insert(0, "/kaggle/input/daily-fx-utils")
-    from fx_utils import read_csv, apply_plot_style, FEATURE_COLUMNS, get_logger
+    import daily_fx_utils as fu
 """
 
 from __future__ import annotations

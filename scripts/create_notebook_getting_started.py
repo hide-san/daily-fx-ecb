@@ -92,21 +92,16 @@ import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
 # Shared Daily FX utilities
-from daily_fx_utils import (
-    read_csv,
-    apply_plot_style,
-    COLOR_RATE,
-    get_logger,
-)
+import daily_fx_utils as fu
 
-apply_plot_style()
-log = get_logger()
+fu.apply_plot_style()
+log = fu.get_logger()
 print("Libraries loaded successfully.")"""),
         # ------------------------------------------------------------------ #
         # Load data
         # ------------------------------------------------------------------ #
         md("## 2. Load the data"),
-        code(f"""df = read_csv("{pair}")
+        code(f"""df = fu.read_csv("{pair}")
 
 print(f"Rows    : {{len(df):,}}")
 print(f"Columns : {{list(df.columns)}}")
@@ -121,7 +116,7 @@ df.tail()"""),
         md("## 3. Full rate history"),
         code(f"""fig, ax = plt.subplots(figsize=(12, 4))
 
-ax.plot(df["date"], df["rate"], linewidth=0.8, color=COLOR_RATE)
+ax.plot(df["date"], df["rate"], linewidth=0.8, color=fu.COLOR_RATE)
 
 ax.set_title("{display} daily spot rate - full history (ECB reference)")
 ax.set_ylabel("{quote} per {base}")
