@@ -185,3 +185,9 @@ class TestGetSlug:
         from upload_notebook import _get_slug
 
         assert _get_slug("USDJPY", "getting-started") == getting_started_slug("USDJPY")
+
+    def test_pipeline_returns_pipeline_slug(self) -> None:
+        from common import pipeline_notebook_slug
+        from upload_notebook import _get_slug
+
+        assert _get_slug("any", "pipeline") == pipeline_notebook_slug()

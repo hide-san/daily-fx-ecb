@@ -61,6 +61,7 @@ KAGGLE_USER = (
 )
 
 GITHUB_MATRIX_LIMIT = 256
+GITHUB_RAW_BASE_URL = "https://raw.githubusercontent.com/hide-san/daily-fx-ecb"
 
 # ---------------------------------------------------------------------------
 # Pair helpers
@@ -228,3 +229,22 @@ def utils_output_dir() -> Path:
     """Return (and create) the output directory for the utils script."""
     UTILS_DIR.mkdir(parents=True, exist_ok=True)
     return UTILS_DIR
+
+
+# ---------------------------------------------------------------------------
+# Pipeline overview notebook
+# ---------------------------------------------------------------------------
+
+PIPELINE_NOTEBOOK_TITLE = "Daily FX: ECB Pipeline Overview"
+PIPELINE_DIR = NOTEBOOKS_ROOT / "pipeline"
+
+
+def pipeline_notebook_slug() -> str:
+    """Kaggle kernel identifier for the pipeline overview notebook."""
+    return f"{KAGGLE_USER}/daily-fx-ecb-pipeline-overview"
+
+
+def pipeline_notebook_output_dir() -> Path:
+    """Return (and create) the output directory for the pipeline notebook."""
+    PIPELINE_DIR.mkdir(parents=True, exist_ok=True)
+    return PIPELINE_DIR

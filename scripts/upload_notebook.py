@@ -1,12 +1,13 @@
 """
-scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|getting-started|utils]
-=============================================================================================
-Push one pair's notebook (or the shared utils script) to Kaggle Kernels.
+scripts/upload_notebook.py  --pair <BASEQUOTE>  [--kind eda|modeling|getting-started|utils|pipeline]
+========================================================================================================
+Push one pair's notebook (or a shared kernel) to Kaggle Kernels.
 
---kind eda              pushes the EDA notebook          (default)
---kind modeling         pushes the modeling notebook
---kind getting-started  pushes the Getting Started notebook
+--kind eda              pushes the EDA notebook          (--pair required)
+--kind modeling         pushes the modeling notebook     (--pair required)
+--kind getting-started  pushes the Getting Started notebook (--pair required)
 --kind utils            pushes the shared fx_utils.py    (--pair not required)
+--kind pipeline         pushes the pipeline overview notebook (--pair not required)
 
 Input
 -----
@@ -21,6 +22,10 @@ notebooks/<PAIR>/
 notebooks/utils/
     fx_utils.py
     kernel-metadata-utils.json
+
+notebooks/pipeline/
+    pipeline_overview.ipynb
+    kernel-metadata-pipeline.json
 """
 
 import argparse
@@ -36,6 +41,8 @@ from common import (
     append_github_summary,
     modeling_notebook_slug,
     notebook_slug,
+    pipeline_notebook_output_dir,
+    pipeline_notebook_slug,
     run_command,
     utils_output_dir,
     utils_slug,
@@ -50,6 +57,7 @@ _METADATA_FILE = {
     "modeling": "kernel-metadata-modeling.json",
     "getting-started": "kernel-metadata-getting-started.json",
     "utils": "kernel-metadata-utils.json",
+    "pipeline": "kernel-metadata-pipeline.json",
 }
 
 _NOTEBOOK_FILE: dict[str, Callable[[str], str]] = {
@@ -57,6 +65,7 @@ _NOTEBOOK_FILE: dict[str, Callable[[str], str]] = {
     "modeling": lambda pair: f"{pair}_modeling.ipynb",
     "getting-started": lambda pair: f"{pair}_getting_started.ipynb",
     "utils": lambda _: "fx_utils.py",
+    "pipeline": lambda _: "pipeline_overview.ipynb",
 }
 
 
@@ -75,6 +84,8 @@ def _get_slug(pair: str, kind: str) -> str:
         return modeling_notebook_slug(pair)
     elif kind == "getting-started":
         return getting_started_slug(pair)
+    elif kind == "pipeline":
+        return pipeline_notebook_slug()
     else:
         return utils_slug()
 
@@ -137,7 +148,12 @@ def wait_for_kernel(
 
 def push_notebook(pair: str, kind: str, dry_run: bool) -> bool:
     """Push the notebook/script for the given kind to Kaggle Kernels."""
-    notebook_dir = utils_output_dir() if kind == "utils" else NOTEBOOKS_ROOT / pair
+    if kind == "utils":
+        notebook_dir = utils_output_dir()
+    elif kind == "pipeline":
+        notebook_dir = pipeline_notebook_output_dir()
+    else:
+        notebook_dir = NOTEBOOKS_ROOT / pair
 
     metadata_src = notebook_dir / _METADATA_FILE[kind]
     notebook_src = notebook_dir / _NOTEBOOK_FILE[kind](pair)
@@ -206,7 +222,7 @@ def main() -> None:
     )
     parser.add_argument(
         "--kind",
-        choices=["eda", "modeling", "getting-started", "utils"],
+        choices=["eda", "modeling", "getting-started", "utils", "pipeline"],
         default="eda",
         help="Which asset to push (default: eda)",
     )
@@ -225,10 +241,10 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    if args.kind != "utils" and not args.pair:
+    if args.kind not in ("utils", "pipeline") and not args.pair:
         parser.error("--pair is required for --kind eda, modeling, and getting-started")
 
-    pair = args.pair.upper() if args.pair else "UTILS"
+    pair = args.pair.upper() if args.pair else args.kind.upper()
     success = push_notebook(pair, kind=args.kind, dry_run=args.dry_run)
     status = "success" if success else "FAILED"
     append_github_summary(f"| {args.kind} {pair} | {status} |\n")

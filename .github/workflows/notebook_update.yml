@@ -69,7 +69,36 @@ jobs:
         run: echo "Processing ${{ steps.resolve.outputs.pair_count }} pairs."
 
   # ==========================================================================
-  # Job 2: Push shared utils script (once, not per-pair)
+  # Job 2a: Push pipeline overview notebook (once, not per-pair)
+  #
+  # Independent of resolve — no pair matrix needed.
+  # enable_internet=true in kernel metadata allows the notebook to fetch
+  # KAGGLE_README.md and CHANGELOG.md from GitHub at runtime.
+  # ==========================================================================
+  push-pipeline:
+    name: "Push Pipeline Overview Notebook"
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/python-setup
+
+      - name: Generate pipeline overview notebook
+        env:
+          KAGGLE_USERNAME: ${{ secrets.KAGGLE_USERNAME }}
+        run: python scripts/create_notebook_pipeline.py
+
+      - name: Push pipeline overview notebook to Kaggle
+        env:
+          KAGGLE_API_TOKEN: ${{ secrets.KAGGLE_API_TOKEN }}
+          KAGGLE_USERNAME:  ${{ secrets.KAGGLE_USERNAME }}
+        run: |
+          DRY_RUN_FLAG=""
+          [ "${{ github.event.inputs.dry_run }}" = "true" ] && DRY_RUN_FLAG="--dry-run"
+          python scripts/upload_notebook.py --kind pipeline $DRY_RUN_FLAG
+
+  # ==========================================================================
+  # Job 2b: Push shared utils script (once, not per-pair)
   # ==========================================================================
   push-utils:
     name: "Push Utils Script"
@@ -172,7 +201,7 @@ jobs:
   # ==========================================================================
   summary:
     name: "Notebook Summary"
-    needs: [resolve, push-utils, push-notebooks]
+    needs: [resolve, push-pipeline, push-utils, push-notebooks]
     runs-on: ubuntu-latest
     if: always()
 
@@ -184,8 +213,9 @@ jobs:
             echo ""
             echo "| Job | Result |"
             echo "|---|---|"
-            echo "| Resolve pairs | ${{ needs.resolve.result }} |"
-            echo "| Push utils    | ${{ needs.push-utils.result }} |"
+            echo "| Resolve pairs   | ${{ needs.resolve.result }} |"
+            echo "| Push pipeline   | ${{ needs.push-pipeline.result }} |"
+            echo "| Push utils      | ${{ needs.push-utils.result }} |"
             echo "| Push notebooks (${{ needs.resolve.outputs.pair_count }} pairs × 3 kinds) | ${{ needs.push-notebooks.result }} |"
             echo ""
             echo "**Pairs input**: ${{ github.event.inputs.pairs || '(pairs.txt)' }}"
