@@ -6,10 +6,18 @@ name: Notebook Update Pipeline
 # Job order:
 #   resolve        -- resolve pair list
 #   push-utils     -- generate & push shared fx_utils.py (once, not per-pair)
+#   push-pipeline  -- generate & push pipeline overview notebook (once, not per-pair)
 #   push-notebooks -- per-pair job: generates and pushes all 3 notebook kinds
 #                     in sequence (getting-started → eda → modeling).
 #                     max-parallel=3 keeps Kaggle CPU sessions ≤ 3.
 #   summary        -- write result table
+#
+# ⚠️  KAGGLE CPU SESSION LIMIT — do not change this structure without care:
+#   Kaggle limits the number of concurrent CPU kernel sessions.
+#   All 3 notebook kinds are pushed SEQUENTIALLY within each per-pair job so
+#   that concurrent sessions == max-parallel (currently 3).
+#   Splitting kinds into separate parallel jobs would multiply concurrency by
+#   the number of kinds and exceed the Kaggle CPU limit.
 # ---------------------------------------------------------------------------
 
 on:

@@ -41,9 +41,18 @@ This is a fully automated pipeline that fetches ECB FX data and publishes per-pa
 
 **Notebook update** (Mondays 16:00 UTC):
 - `create_utils_script.py` → `upload_notebook.py --kind utils` (once)
-- `create_notebook_getting_started.py` → `upload_notebook.py --kind getting-started` (per pair)
-- `create_notebook_eda.py` → `upload_notebook.py --kind eda` (per pair)
-- `create_notebook_modeling.py` → `upload_notebook.py --kind modeling` (per pair)
+- `create_notebook_pipeline.py` → `upload_notebook.py --kind pipeline` (once)
+- Per pair: getting-started → eda → modeling pushed sequentially within one job
+
+**Kaggle CPU session limit — do not break this constraint:**
+Kaggle allows a limited number of concurrent CPU kernel sessions. The notebook
+pipeline is intentionally structured so that all three notebook kinds
+(getting-started, eda, modeling) are pushed **sequentially within a single
+per-pair job**, and the number of parallel pairs is capped by `max-parallel`
+(default 3). This keeps concurrent Kaggle sessions at `max-parallel` at most.
+Do NOT split the notebook kinds into separate parallel jobs or workflows —
+doing so multiplies the concurrent session count by the number of kinds and
+will exceed the Kaggle CPU limit.
 
 ### Cross-rate computation
 
