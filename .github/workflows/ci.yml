@@ -50,7 +50,7 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install dependencies
-        run: pip install mypy pandas-stubs numpy pandas requests tenacity
+        run: pip install mypy types-requests pandas-stubs numpy pandas requests tenacity
       - name: Run mypy
         run: mypy scripts/
 

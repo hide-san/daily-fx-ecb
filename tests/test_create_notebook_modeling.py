@@ -58,7 +58,10 @@ class TestMainCreateModelingNotebook:
         with (
             patch("sys.argv", ["create_notebook_modeling.py", "--pair", "USDJPY"]),
             patch("create_notebook_modeling.notebook_output_dir", return_value=tmp_path),
-            patch("create_notebook_modeling.load_public_kernels", return_value={modeling_notebook_slug("USDJPY")}),
+            patch(
+                "create_notebook_modeling.load_public_kernels",
+                return_value={modeling_notebook_slug("USDJPY")},
+            ),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
             create_notebook_modeling.main()

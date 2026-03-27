@@ -64,7 +64,9 @@ class TestMainCreateNotebook:
         with (
             patch("sys.argv", ["create_notebook_eda.py", "--pair", "USDJPY"]),
             patch("create_notebook_eda.notebook_output_dir", return_value=tmp_path),
-            patch("create_notebook_eda.load_public_kernels", return_value={notebook_slug("USDJPY")}),
+            patch(
+                "create_notebook_eda.load_public_kernels", return_value={notebook_slug("USDJPY")}
+            ),
             patch.dict(os.environ, {"GITHUB_STEP_SUMMARY": str(summary)}),
         ):
             create_notebook_eda.main()
