@@ -69,6 +69,21 @@ class TestWriteKernelMetadata:
         meta = json.loads((tmp_path / "kernel-metadata-pipeline.json").read_text())
         assert meta["code_file"] == "pipeline_overview.ipynb"
 
+    def test_dataset_sources_contains_all_pairs(self, tmp_path: Path) -> None:
+        from common import dataset_slug, load_pairs_file
+
+        with patch("create_notebook_pipeline.pipeline_notebook_output_dir", return_value=tmp_path):
+            write_kernel_metadata()
+        meta = json.loads((tmp_path / "kernel-metadata-pipeline.json").read_text())
+        expected = [dataset_slug(p) for p in load_pairs_file()]
+        assert meta["dataset_sources"] == expected
+
+    def test_dataset_sources_is_not_empty(self, tmp_path: Path) -> None:
+        with patch("create_notebook_pipeline.pipeline_notebook_output_dir", return_value=tmp_path):
+            write_kernel_metadata()
+        meta = json.loads((tmp_path / "kernel-metadata-pipeline.json").read_text())
+        assert len(meta["dataset_sources"]) > 0
+
 
 class TestMainCreatePipelineNotebook:
     def test_main_creates_notebook_and_metadata(self, tmp_path: Path) -> None:

@@ -51,6 +51,7 @@ ECB_START_DATE = "1999-01-01"
 ECB_RAW_PATH = Path("ecb_raw/all_currencies.csv")
 DATASETS_ROOT = Path("datasets")
 NOTEBOOKS_ROOT = Path("notebooks")
+PAIRS_FILE = Path("pairs.txt")
 
 # ---------------------------------------------------------------------------
 # Kaggle identity
@@ -66,6 +67,18 @@ GITHUB_RAW_BASE_URL = "https://raw.githubusercontent.com/hide-san/daily-fx-ecb"
 # ---------------------------------------------------------------------------
 # Pair helpers
 # ---------------------------------------------------------------------------
+
+
+def load_pairs_file(path: Path = PAIRS_FILE) -> list[str]:
+    """Return pairs from a pairs.txt file, ignoring blank lines and comments."""
+    lines = path.read_text(encoding="utf-8").splitlines()
+    return list(
+        dict.fromkeys(
+            line.strip().upper()
+            for line in lines
+            if line.strip() and not line.strip().startswith("#")
+        )
+    )
 
 
 def parse_pair(pair: str) -> tuple[str, str]:

@@ -22,6 +22,8 @@ from common import (
     PIPELINE_NOTEBOOK_TITLE,
     append_github_summary,
     code,
+    dataset_slug,
+    load_pairs_file,
     pipeline_notebook_output_dir,
     pipeline_notebook_slug,
 )
@@ -78,7 +80,7 @@ def write_kernel_metadata() -> None:
         "enable_gpu": False,
         "enable_tpu": False,
         "enable_internet": True,  # Required: fetches KAGGLE_README.md from GitHub at runtime
-        "dataset_sources": [],
+        "dataset_sources": [dataset_slug(p) for p in load_pairs_file()],
         "competition_sources": [],
         "kernel_sources": [],
     }
