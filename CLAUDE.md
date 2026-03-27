@@ -27,6 +27,15 @@ pytest tests/ -k "calc_pair" -v
 
 Coverage minimum is 80% (enforced in CI). `create_cover.py` is excluded from coverage.
 
+## Regenerating the pipeline diagram
+
+When the pipeline structure changes, regenerate and commit the diagram manually:
+
+```bash
+python scripts/create_pipeline_diagram.py
+git add docs/pipeline.png
+```
+
 ## Before every commit
 
 Run the following and confirm all pass before committing:
