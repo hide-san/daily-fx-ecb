@@ -30,7 +30,6 @@ from common import (
 
 _README_URL = f"{GITHUB_RAW_BASE_URL}/main/KAGGLE_README.md"
 _CHANGELOG_URL = f"{GITHUB_RAW_BASE_URL}/main/CHANGELOG.md"
-_DIAGRAM_URL = f"{GITHUB_RAW_BASE_URL}/main/docs/pipeline.png"
 _CHANGELOG_PREVIEW_LINES = 30
 
 
@@ -39,11 +38,8 @@ def build_pipeline_notebook() -> dict[str, Any]:
     cells = [
         code(
             "import requests\n"
-            "from IPython.display import Image, Markdown, display\n"
+            "from IPython.display import Markdown, display\n"
             "\n"
-            f'display(Image(url="{_DIAGRAM_URL}", width=900))\n'
-        ),
-        code(
             f'response = requests.get("{_README_URL}")\n'
             "response.raise_for_status()\n"
             "display(Markdown(response.text))\n"
