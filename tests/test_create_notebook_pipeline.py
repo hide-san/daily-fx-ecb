@@ -40,6 +40,11 @@ class TestBuildPipelineNotebook:
         sources = " ".join(cell["source"] for cell in nb["cells"])
         assert "CHANGELOG.md" in sources
 
+    def test_pipeline_diagram_displayed(self) -> None:
+        nb = build_pipeline_notebook()
+        sources = " ".join(cell["source"] for cell in nb["cells"])
+        assert "docs/pipeline.png" in sources
+
     def test_has_kernelspec(self) -> None:
         nb = build_pipeline_notebook()
         assert "kernelspec" in nb["metadata"]
