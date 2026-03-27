@@ -194,7 +194,6 @@ def write_kernel_metadata(pair: str) -> None:
         "code_file": f"{pair}_eda.ipynb",
         "language": "python",
         "kernel_type": "notebook",
-        "is_private": True,
         "enable_gpu": False,
         "enable_internet": False,
         "keywords": ["finance", "economics"],

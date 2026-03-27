@@ -198,7 +198,6 @@ def write_kernel_metadata() -> None:
         "language": "python",
         "kernel_type": "script",
         "util-script": True,
-        "is_private": True,
         "enable_gpu": False,
         "enable_internet": False,
         "keywords": ["finance", "economics"],

@@ -76,7 +76,6 @@ def write_kernel_metadata() -> None:
         "code_file": "pipeline_overview.ipynb",
         "language": "python",
         "kernel_type": "notebook",
-        "is_private": False,
         "enable_gpu": False,
         "enable_tpu": False,
         "enable_internet": True,  # Required: fetches KAGGLE_README.md from GitHub at runtime

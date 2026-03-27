@@ -245,7 +245,6 @@ def write_kernel_metadata(pair: str) -> None:
         "code_file": f"{pair}_modeling.ipynb",
         "language": "python",
         "kernel_type": "notebook",
-        "is_private": True,
         "enable_gpu": False,
         "enable_internet": True,
         "keywords": ["finance", "economics"],
