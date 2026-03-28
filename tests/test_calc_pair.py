@@ -157,7 +157,7 @@ class TestWriteDatasetMetadata:
             write_dataset_metadata("USDJPY", "USD", "JPY", df)
         common.DATASETS_ROOT = original
 
-    def test_no_is_private_key(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
+    def test_is_private_false(self, tmp_path: Path, simple_wide: pd.DataFrame) -> None:
         import common
 
         original = common.DATASETS_ROOT
@@ -168,4 +168,4 @@ class TestWriteDatasetMetadata:
         common.DATASETS_ROOT = original
         with open(tmp_path / "USDJPY" / "dataset-metadata.json") as fh:
             meta = json.load(fh)
-        assert "isPrivate" not in meta
+        assert meta["isPrivate"] is False

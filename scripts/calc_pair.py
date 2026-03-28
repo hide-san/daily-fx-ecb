@@ -80,6 +80,7 @@ def write_dataset_metadata(pair: str, base: str, quote: str, df: pd.DataFrame) -
         "title": dataset_title(pair),
         "subtitle": f"ECB daily {base}/{quote} cross rates 1999-present, ML-ready features",
         "id": dataset_slug(pair),
+        "isPrivate": False,
         "licenses": [
             {
                 "name": "other",
