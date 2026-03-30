@@ -27,7 +27,7 @@ def make_df(
     spike_index: int | None = None,
     gap_after_index: int | None = None,
 ) -> pd.DataFrame:
-    latest = date.today() - timedelta(days=latest_offset_days)
+    latest = (pd.Timestamp(date.today() - timedelta(days=latest_offset_days)) - pd.offsets.BDay(0)).date()
     dates = pd.date_range(end=latest, periods=n_rows, freq="B")
     rates = np.full(len(dates), 150.0)
 
