@@ -25,7 +25,7 @@ pytest tests/test_calc_pair.py -v
 pytest tests/ -k "calc_pair" -v
 ```
 
-Coverage minimum is 80% (enforced in CI). `create_cover.py` and `create_pipeline_diagram.py` are excluded from coverage (manual image generation scripts).
+Coverage minimum is 80% (enforced in CI). `create_pipeline_diagram.py` is excluded from coverage (manual image generation script).
 
 ## Regenerating the pipeline diagram
 
@@ -61,7 +61,6 @@ This is a fully automated pipeline that fetches ECB FX data and publishes per-pa
 1. `fetch_ecb.py` — pulls EUR reference rates for 20 currencies from the ECB API → `ecb_raw/all_currencies.csv`
 2. `resolve_pairs.py` — resolves `pairs.txt` (or all permutations) into a GitHub Actions matrix
 3. Per pair (parallelized): `calc_pair.py` → `validate_pair.py` → `upload_dataset.py`
-4. `create_cover.py` — generates 1280×640 PNG cover image (independent, continue-on-error)
 
 **Notebook update** (Mondays 16:00 UTC):
 - `create_utils_script.py` → `upload_notebook.py --kind utils` (once)

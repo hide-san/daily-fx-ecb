@@ -28,7 +28,7 @@ Job 2  resolve        resolve_pairs.py      1 runner
 |
 v
 Job 3  calc-and-upload                      N runners
-       calc_pair.py / create_cover.py / validate_pair.py / upload_dataset.py
+       calc_pair.py / validate_pair.py / upload_dataset.py
 |
 v
 Job 4  summary                              1 runner (always)
@@ -50,7 +50,6 @@ scripts/
   fetch_ecb.py              Job 1 -- fetch ECB rates
   resolve_pairs.py          Job 2 -- resolve pair list
   calc_pair.py              Job 3 -- compute cross rates + features
-  create_cover.py         Job 3 -- create PNG cover image
   validate_pair.py          Job 3 -- data quality gate
   upload_dataset.py                  Job 3 -- upload dataset to Kaggle
   create_utils_script.py             generate shared fx_utils.py
