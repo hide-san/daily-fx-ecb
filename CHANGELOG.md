@@ -1,5 +1,7 @@
 # Changelog
 
+## 2026-08-05 -- Daily update (22 pairs)
+
 ## 2026-08-04 -- Daily update (22 pairs)
 
 ## 2026-08-03 -- Daily update (22 pairs)
