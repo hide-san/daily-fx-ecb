@@ -7,3 +7,4 @@ Pillow>=10.0
 kaggle>=1.6
 statsmodels>=0.14
 arch>=6.3
+six>=1.17.0
